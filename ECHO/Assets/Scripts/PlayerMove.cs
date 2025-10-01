@@ -14,12 +14,23 @@ public class PlayerMove : MonoBehaviour
     public AudioClip audioFinish;
     public float maxSpeed;
     public float jumpPower;
+    public float ladderXThreshold = 0.8f; // 사다리 중앙 근처 체크
+    public float climbSpeed = 3f; // 사다리 오르기 속도
+    public float jumpOffLadderForce = 5f; // 사다리에서 뛰어내릴 때의 힘
 
     Rigidbody2D rigid;
     SpriteRenderer spriteRenderer;
     Animator anim;
     CapsuleCollider2D capsulecollider;
     AudioSource audioSource;
+
+    // Ladder 관련 변수
+    private bool isClimbing = false;
+    private Collider2D currentLadder;
+    private float verticalInput;
+    private int originalLayer;
+    private int climbingLayer; // Climbing 레이어 인덱스
+    private float defaultGravityScale = 4f; // RigidBody2D의 초기 Gravity Scale 값이라고 가정
 
     void Awake()
     {
@@ -28,6 +39,13 @@ public class PlayerMove : MonoBehaviour
         anim = GetComponent<Animator>();
         capsulecollider = GetComponent<CapsuleCollider2D>();
         audioSource = GetComponent<AudioSource>();
+
+        // 기본 레이어와 중력 스케일 저장
+        originalLayer = gameObject.layer; 
+        climbingLayer = LayerMask.NameToLayer("ClimbingPlayer");
+        
+        // RigidBody2D의 기본 Gravity Scale 값 저장 (Inspector 값으로 초기화)
+        defaultGravityScale = rigid.gravityScale;
     }
 
     void PlaySound(string action)
@@ -56,61 +74,145 @@ public class PlayerMove : MonoBehaviour
         audioSource.Play();
     }
 
+    void StartClimbing()
+    {
+        isClimbing = true;
+        rigid.gravityScale = 0; // 중력 제거
+        gameObject.layer = climbingLayer; // Climbing 레이어로 변경하여 platform 충돌 무시
+        
+        rigid.velocity = new Vector2(0, 0); // 현재 속도 초기화
+        anim.SetBool("isClimbing", true);
+        anim.SetBool("isHanging", false);
+        anim.SetBool("isJumping", false); 
+    }
+
+    void StopClimbing()
+    {
+        // Debug
+        // Debug.Log("Climbing Stopped!");
+
+        isClimbing = false;
+        rigid.gravityScale = defaultGravityScale;
+        gameObject.layer = originalLayer;   // 원래 레이어로 복구하여 Platform 충돌 가능
+
+        currentLadder = null; // 현재 사다리 참조 해제
+        anim.SetBool("isClimbing", false);
+        anim.SetBool("isHanging", false);
+    }
+
+
     void Update()
     {
-        // Jump 
-        if (Input.GetButtonDown("Jump") && !anim.GetBool("isJumping"))
+        verticalInput = Input.GetAxisRaw("Vertical");
+        float h = Input.GetAxisRaw("Horizontal");
+
+        // 1. 사다리 진입 로직
+        // 사다리 중앙 근처에 있어야 진입 가능
+        if (currentLadder != null && !isClimbing)
+        {
+            float ladderX = currentLadder.bounds.center.x;
+            float xDifference = Mathf.Abs(transform.position.x - ladderX);
+
+        // W키로 올라갈 때 또는 S키로 내려갈 때 모두 Climbing 상태 진입
+        if (xDifference < ladderXThreshold && verticalInput != 0) // 위 또는 아래 입력이 있을 때
+        {
+            // 플랫폼 위에서 S키를 누르면 플레이어 레이어를 바꿔서 통과할 수 있게 함
+            if (verticalInput < 0) {
+                gameObject.layer = climbingLayer;
+            }
+            StartClimbing();
+        }
+        }
+
+        // 2. 사다리 이동 및 상태 관리
+        if (isClimbing)
+        {
+            float xVelocity = h * maxSpeed; 
+            float yVelocity = verticalInput * climbSpeed; 
+
+            // W/S를 누르지 않고 A/D만 눌렀을 때도 매달림 상태 유지
+            if (verticalInput != 0) 
+            {
+                // Y축 이동 중
+                rigid.velocity = new Vector2(xVelocity, yVelocity); 
+                anim.SetBool("isClimbing", true);
+                anim.SetBool("isHanging", false);
+            }
+            else if (h != 0)
+            {
+                // W/S를 떼고 A/D만 누를 때 (좌우 이동 매달림 상태)
+                rigid.velocity = new Vector2(xVelocity, 0); 
+                anim.SetBool("isClimbing", false);
+                anim.SetBool("isHanging", true);
+            }
+            else
+            {
+                // 모든 입력이 없을 때: 매달림 (Hanging) 상태로 속도 0 고정
+                rigid.velocity = Vector2.zero; 
+                anim.SetBool("isClimbing", false);
+                anim.SetBool("isHanging", true); 
+            }
+
+            // A/D 키를 눌렀을 때 좌우 반전 (유지)
+            if (h != 0)
+            {
+                spriteRenderer.flipX = h > 0;
+            }
+
+            if (Input.GetButtonDown("Jump"))
+            {
+                // 사다리에서 점프하여 벗어남
+                StopClimbing();
+                // 수평 이동 중이면 그 방향으로 힘을 주고, 아니면 제자리에 점프
+                Vector2 jumpDirection = new Vector2(h, 1f).normalized;
+                rigid.AddForce(jumpDirection * jumpOffLadderForce, ForceMode2D.Impulse);
+                anim.SetBool("isJumping", true);
+                PlaySound("JUMP");
+            }
+        }
+        
+        // 3. 점프 처리 (Climbing 상태에서는 일반 점프 방지)
+        if (Input.GetButtonDown("Jump") && !anim.GetBool("isJumping") && !isClimbing)
         {
             rigid.AddForce(Vector2.up * jumpPower, ForceMode2D.Impulse);
             anim.SetBool("isJumping", true);
             PlaySound("JUMP");
         }
 
-        // Stop Speed
-        if (Input.GetButtonUp("Horizontal"))
+        // 4. Horizontal 이동 처리 (Climbing 상태가 아닐 때만)
+        if (!isClimbing)
         {
-            rigid.velocity = new Vector2(rigid.velocity.normalized.x * 0.5f, rigid.velocity.y);
-        }
+            rigid.velocity = new Vector2(h * maxSpeed, rigid.velocity.y);
+            anim.SetBool("isWalking", Mathf.Abs(h) > 0.3f);
 
-        // Direction Sprite
-        if (Input.GetButton("Horizontal"))
-        {
-            spriteRenderer.flipX = Input.GetAxisRaw("Horizontal") == -1;
-        }
-
-        // Animation
-        if (Mathf.Abs(rigid.velocity.x) < 0.3)
-        {
-            anim.SetBool("isWalking", false);
-        }
-        else
-        {
-            anim.SetBool("isWalking", true);
+            if (h != 0)
+            {
+                spriteRenderer.flipX = h > 0;
+            }
+            
+                // 플레이어가 땅에 서 있거나 걷고 있을 때 (isClimbing이 아닐 때), 
+                // 사다리 관련 애니메이션은 확실히 꺼줍니다.
+                anim.SetBool("isClimbing", false); // <--- 추가/확인
+                anim.SetBool("isHanging", false);  // <--- 추가/확인
         }
     }
 
     void FixedUpdate()
-    {   // Move Speed
-        float h = Input.GetAxisRaw("Horizontal");
-        rigid.AddForce(Vector2.right * h, ForceMode2D.Impulse);
+    {
+        // climbing 아닐 때 horizontal 속도 제한
+        if (!isClimbing)
+        {
+            // 기존 Horizontal 속도 제한 로직
+            float newX = Mathf.Clamp(rigid.velocity.x, -maxSpeed, maxSpeed);
+            rigid.velocity = new Vector2(newX, rigid.velocity.y);
+        }
 
-        // Max Speed
-        if (rigid.velocity.x > maxSpeed)    // Right Max Speed
-            rigid.velocity = new Vector2(maxSpeed, rigid.velocity.y);
-        else if (rigid.velocity.x < maxSpeed * (-1))    // Left Max Speed
-            rigid.velocity = new Vector2(maxSpeed * (-1), rigid.velocity.y);
-
-        // Landing Platform
+        // Landing 체크
         if (rigid.velocity.y < 0)
         {
-            Debug.DrawRay(rigid.position, Vector3.down, new Color(0, 1, 0));
-            RaycastHit2D rayHit = Physics2D.Raycast(rigid.position, Vector3.down, 1, LayerMask.GetMask("Platform"));
-
-            if (rayHit.collider != null)
-            {
-                if (rayHit.distance < 0.5f)
-                    anim.SetBool("isJumping", false);
-            }
+            RaycastHit2D rayHit = Physics2D.Raycast(rigid.position, Vector2.down, 1f, LayerMask.GetMask("Platform"));
+            if (rayHit.collider != null && rayHit.distance < 0.5f)
+                anim.SetBool("isJumping", false);
         }
     }
 
@@ -132,6 +234,12 @@ public class PlayerMove : MonoBehaviour
 
     void OnTriggerEnter2D(Collider2D collision)
     {
+        if (collision.CompareTag("Ladder"))
+        {
+            currentLadder = collision;
+            // Debug.Log("사다리 감지됨");
+        }
+
         if (collision.gameObject.tag == "Item")
         {
             // Point
@@ -161,6 +269,24 @@ public class PlayerMove : MonoBehaviour
 
             // Sound
             PlaySound("FINISH");
+        }
+    }
+
+    void OnTriggerExit2D(Collider2D collision)
+    {
+        // [핵심 수정 3] 사다리 Trigger를 벗어나는 순간 isClimbing 상태라면 무조건 StopClimbing 호출
+        if (collision.CompareTag("Ladder"))
+        {
+            if (isClimbing)
+            {
+                // 사다리 영역을 벗어나는 순간 중력 복구 및 Climbing 상태 종료
+                StopClimbing();
+            }
+            else
+            {
+                // Climbing 중이 아닐 때, 단순히 사다리 영역을 지나칠 경우 currentLadder만 해제
+                currentLadder = null;
+            }
         }
     }
 
@@ -223,7 +349,7 @@ public class PlayerMove : MonoBehaviour
         capsulecollider.enabled = false;
 
         // Die Effect Jump
-        rigid.AddForce(Vector2.up * 5, ForceMode2D.Impulse);
+        rigid.AddForce(Vector2.up, ForceMode2D.Impulse);
 
         // Sound
         PlaySound("DIE");
