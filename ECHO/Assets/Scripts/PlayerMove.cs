@@ -14,8 +14,8 @@ public class PlayerMove : MonoBehaviour
     public AudioClip audioFinish;
     public float maxSpeed;
     public float jumpPower;
-    public float ladderXThreshold = 0.8f; // 사다리 중앙 근처 체크
-    public float climbSpeed = 3f; // 사다리 오르기 속도
+    public float ladderXThreshold = 0.5f; // 사다리 중앙 근처 체크
+    public float climbSpeed = 1f; // 사다리 오르기 속도
     public float jumpOffLadderForce = 5f; // 사다리에서 뛰어내릴 때의 힘
 
     Rigidbody2D rigid;
@@ -41,9 +41,9 @@ public class PlayerMove : MonoBehaviour
         audioSource = GetComponent<AudioSource>();
 
         // 기본 레이어와 중력 스케일 저장
-        originalLayer = gameObject.layer; 
+        originalLayer = gameObject.layer;
         climbingLayer = LayerMask.NameToLayer("ClimbingPlayer");
-        
+
         // RigidBody2D의 기본 Gravity Scale 값 저장 (Inspector 값으로 초기화)
         defaultGravityScale = rigid.gravityScale;
     }
@@ -79,11 +79,11 @@ public class PlayerMove : MonoBehaviour
         isClimbing = true;
         rigid.gravityScale = 0; // 중력 제거
         gameObject.layer = climbingLayer; // Climbing 레이어로 변경하여 platform 충돌 무시
-        
+
         rigid.velocity = new Vector2(0, 0); // 현재 속도 초기화
         anim.SetBool("isClimbing", true);
         anim.SetBool("isHanging", false);
-        anim.SetBool("isJumping", false); 
+        anim.SetBool("isJumping", false);
     }
 
     void StopClimbing()
@@ -113,44 +113,50 @@ public class PlayerMove : MonoBehaviour
             float ladderX = currentLadder.bounds.center.x;
             float xDifference = Mathf.Abs(transform.position.x - ladderX);
 
-        // W키로 올라갈 때 또는 S키로 내려갈 때 모두 Climbing 상태 진입
-        if (xDifference < ladderXThreshold && verticalInput != 0) // 위 또는 아래 입력이 있을 때
-        {
-            // 플랫폼 위에서 S키를 누르면 플레이어 레이어를 바꿔서 통과할 수 있게 함
-            if (verticalInput < 0) {
-                gameObject.layer = climbingLayer;
+            // 아래로 내려갈 때와 위로 올라갈 때의 조건을 분리합니다.
+            if (xDifference < ladderXThreshold)
+            {
+                // 1. 아래로 내려갈 때 (S키): 언제나 가능해야 합니다.
+                if (verticalInput < 0)
+                {
+                    gameObject.layer = climbingLayer;
+                    StartClimbing();
+                }
+                // 2. 위로 올라갈 때 (W키): 땅에 서있지 않을 때만 가능해야 합니다.
+                else if (verticalInput > 0 && !IsGrounded()) 
+                {
+                    StartClimbing();
+                }
             }
-            StartClimbing();
-        }
         }
 
         // 2. 사다리 이동 및 상태 관리
         if (isClimbing)
         {
-            float xVelocity = h * maxSpeed; 
-            float yVelocity = verticalInput * climbSpeed; 
+            float xVelocity = h * maxSpeed;
+            float yVelocity = verticalInput * climbSpeed;
 
             // W/S를 누르지 않고 A/D만 눌렀을 때도 매달림 상태 유지
-            if (verticalInput != 0) 
+            if (verticalInput != 0)
             {
                 // Y축 이동 중
-                rigid.velocity = new Vector2(xVelocity, yVelocity); 
+                rigid.velocity = new Vector2(xVelocity, yVelocity);
                 anim.SetBool("isClimbing", true);
                 anim.SetBool("isHanging", false);
             }
             else if (h != 0)
             {
                 // W/S를 떼고 A/D만 누를 때 (좌우 이동 매달림 상태)
-                rigid.velocity = new Vector2(xVelocity, 0); 
+                rigid.velocity = new Vector2(xVelocity, 0);
                 anim.SetBool("isClimbing", false);
                 anim.SetBool("isHanging", true);
             }
             else
             {
                 // 모든 입력이 없을 때: 매달림 (Hanging) 상태로 속도 0 고정
-                rigid.velocity = Vector2.zero; 
+                rigid.velocity = Vector2.zero;
                 anim.SetBool("isClimbing", false);
-                anim.SetBool("isHanging", true); 
+                anim.SetBool("isHanging", true);
             }
 
             // A/D 키를 눌렀을 때 좌우 반전 (유지)
@@ -170,7 +176,7 @@ public class PlayerMove : MonoBehaviour
                 PlaySound("JUMP");
             }
         }
-        
+
         // 3. 점프 처리 (Climbing 상태에서는 일반 점프 방지)
         if (Input.GetButtonDown("Jump") && !anim.GetBool("isJumping") && !isClimbing)
         {
@@ -189,11 +195,11 @@ public class PlayerMove : MonoBehaviour
             {
                 spriteRenderer.flipX = h > 0;
             }
-            
-                // 플레이어가 땅에 서 있거나 걷고 있을 때 (isClimbing이 아닐 때), 
-                // 사다리 관련 애니메이션은 확실히 꺼줍니다.
-                anim.SetBool("isClimbing", false); // <--- 추가/확인
-                anim.SetBool("isHanging", false);  // <--- 추가/확인
+
+            // 플레이어가 땅에 서 있거나 걷고 있을 때 (isClimbing이 아닐 때), 
+            // 사다리 관련 애니메이션은 확실히 꺼줍니다.
+            anim.SetBool("isClimbing", false); // <--- 추가/확인
+            anim.SetBool("isHanging", false);  // <--- 추가/확인
         }
     }
 
@@ -274,7 +280,7 @@ public class PlayerMove : MonoBehaviour
 
     void OnTriggerExit2D(Collider2D collision)
     {
-        // [핵심 수정 3] 사다리 Trigger를 벗어나는 순간 isClimbing 상태라면 무조건 StopClimbing 호출
+        // 사다리 Trigger를 벗어나는 순간 isClimbing 상태라면 무조건 StopClimbing 호출
         if (collision.CompareTag("Ladder"))
         {
             if (isClimbing)
@@ -358,5 +364,17 @@ public class PlayerMove : MonoBehaviour
     public void VelocityZero()
     {
         rigid.velocity = Vector2.zero;
+    }
+    
+    bool IsGrounded()
+    {
+        // 플레이어의 현재 위치에서 아래 방향으로 0.1f 길이의 선을 쏴서
+        // 'Platform' 레이어를 가진 콜라이더가 감지되는지 확인
+        // new Vector2(0, -0.5f)는 레이 시작 위치를 발밑 근처로 조정하는 오프셋
+        RaycastHit2D rayHit = Physics2D.Raycast((Vector2)transform.position + new Vector2(0, -0.5f), 
+                                                Vector2.down, 0.1f, LayerMask.GetMask("Platform"));
+        
+        // 감지된 콜라이더가 있다면(null이 아니라면) 땅에 서 있는 것!
+        return rayHit.collider != null;
     }
 }
