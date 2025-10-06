@@ -88,9 +88,6 @@ public class PlayerMove : MonoBehaviour
 
     void StopClimbing()
     {
-        // Debug
-        // Debug.Log("Climbing Stopped!");
-
         isClimbing = false;
         rigid.gravityScale = defaultGravityScale;
         gameObject.layer = originalLayer;   // 원래 레이어로 복구하여 Platform 충돌 가능
@@ -113,16 +110,16 @@ public class PlayerMove : MonoBehaviour
             float ladderX = currentLadder.bounds.center.x;
             float xDifference = Mathf.Abs(transform.position.x - ladderX);
 
-            // 아래로 내려갈 때와 위로 올라갈 때의 조건을 분리합니다.
+            // 아래로 내려갈 때와 위로 올라갈 때의 조건을 분리
             if (xDifference < ladderXThreshold)
             {
-                // 1. 아래로 내려갈 때 (S키): 언제나 가능해야 합니다.
+                // 1. 아래로 내려갈 때 (S키): 언제나 가능해야 함
                 if (verticalInput < 0)
                 {
                     gameObject.layer = climbingLayer;
                     StartClimbing();
                 }
-                // 2. 위로 올라갈 때 (W키): 땅에 서있지 않을 때만 가능해야 합니다.
+                // 2. 위로 올라갈 때 (W키): 땅에 서있지 않을 때만 가능해야 함
                 else if (verticalInput > 0 && !IsGrounded()) 
                 {
                     StartClimbing();
@@ -197,9 +194,9 @@ public class PlayerMove : MonoBehaviour
             }
 
             // 플레이어가 땅에 서 있거나 걷고 있을 때 (isClimbing이 아닐 때), 
-            // 사다리 관련 애니메이션은 확실히 꺼줍니다.
-            anim.SetBool("isClimbing", false); // <--- 추가/확인
-            anim.SetBool("isHanging", false);  // <--- 추가/확인
+            // 사다리 관련 애니메이션은 확실히 꺼줌
+            anim.SetBool("isClimbing", false);
+            anim.SetBool("isHanging", false); 
         }
     }
 
@@ -243,9 +240,9 @@ public class PlayerMove : MonoBehaviour
         if (collision.CompareTag("Ladder"))
         {
             currentLadder = collision;
-            // Debug.Log("사다리 감지됨");
         }
 
+        // 기존에 있던 코인 관련
         if (collision.gameObject.tag == "Item")
         {
             // Point
@@ -268,6 +265,7 @@ public class PlayerMove : MonoBehaviour
             // Sound
             PlaySound("ITEM");
         }
+        // 나중에 문이랑 상호작용하여 다음 스테이지로 이동하는 걸로 수정해야 함
         else if (collision.gameObject.tag == "Finish")
         {
             // Next Stage
@@ -320,6 +318,7 @@ public class PlayerMove : MonoBehaviour
         Invoke("OffDamaged", 3);
     }
 
+    // 나중에 공격 삭제
     void OnAttack(Transform enemy)
     {
         // Point
