@@ -348,13 +348,13 @@ public class PlayerMove : MonoBehaviour
         spriteRenderer.color = new Color(1, 1, 1, 0.4f);
 
         // Sprite Flip Y
-        spriteRenderer.flipY = true;
+        // spriteRenderer.flipY = true;
 
         // Collider Disable
-        capsulecollider.enabled = false;
+        // capsulecollider.enabled = false;
 
         // Die Effect Jump
-        rigid.AddForce(Vector2.up, ForceMode2D.Impulse);
+        // rigid.AddForce(Vector2.up, ForceMode2D.Impulse);
 
         // Sound
         PlaySound("DIE");
