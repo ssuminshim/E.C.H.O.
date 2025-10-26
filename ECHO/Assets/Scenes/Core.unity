@@ -148,7 +148,7 @@ Transform:
   m_GameObject: {fileID: 963584617}
   serializedVersion: 2
   m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
-  m_LocalPosition: {x: -0.11, y: 0.23, z: 0}
+  m_LocalPosition: {x: -0.11, y: 0.19, z: 0}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children: []
@@ -1246,9 +1246,9 @@ MonoBehaviour:
   UIStage: {fileID: 4658163859546546768}
   UIRestartBtn: {fileID: 1603594493499403960}
   mainCamera: {fileID: 4077181903093507244}
-  cutsceneSceneName: Dead_scene
-  deathZoomDuration: 1
-  targetZoomSize: 0.5
+  cutsceneSceneName: PreviousLife
+  deathZoomDuration: 0.5
+  targetZoomSize: 0.1
 --- !u!4 &7828445517128065541
 Transform:
   m_ObjectHideFlags: 0

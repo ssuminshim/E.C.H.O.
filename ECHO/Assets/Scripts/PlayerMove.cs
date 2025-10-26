@@ -321,7 +321,7 @@ public class PlayerMove : MonoBehaviour
         // Sound
         PlaySound("DAMAGED");
 
-        Invoke("OffDamaged", 3);
+        Invoke("OffDamaged", 1.5f);
     }
 
     // 나중에 공격 삭제
@@ -363,11 +363,14 @@ public class PlayerMove : MonoBehaviour
         // 4. Sprite Alpha
         spriteRenderer.color = new Color(1, 1, 1, 0.4f);
 
-        // 5. 사망 애니메이션 재생
+        // 5. Animator에게 현재 바라보는 방향을 알려줌
+        anim.SetBool("isFacingRight", spriteRenderer.flipX);
+
+        // 6. 사망 애니메이션 재생
         // (Animator에 "Die"라는 이름의 Trigger를 만들었다고 가정)
         anim.SetTrigger("isDead");
 
-        // 6. Sound (기존 코드)
+        // 7. Sound
         PlaySound("DIE");
     }
 

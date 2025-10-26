@@ -50,8 +50,45 @@ public class GameManager : MonoBehaviour
 
     void Start()
     {
+        // "GameData.cs"에 저장된 스테이지 인덱스를 가져옴
+        stageIndex = GameData.StageToReload;
+
         // 게임 시작 시 첫 스테이지 UI 텍스트 설정
         UIStage.text = "STAGE " + (stageIndex + 1);
+
+        // 저장된 스테이지를 로드하는 코루틴 시작
+        StartCoroutine(LoadInitialStage());
+    }
+
+    IEnumerator LoadInitialStage()
+    {
+        // 1. stageIndex에 맞는 씬 이름을 가져옵니다.
+        string sceneToLoad = stageSceneNames[stageIndex];
+        
+        // 2. 해당 씬을 추가로 로드합니다.
+        AsyncOperation asyncLoad = SceneManager.LoadSceneAsync(sceneToLoad, LoadSceneMode.Additive);
+        while (!asyncLoad.isDone)
+        {
+            yield return null; // 로드 완료까지 대기
+        }
+
+        // 3. (중요) 새로 로드된 씬의 Stage.cs가
+        // GameManager에게 등록할 때까지 잠시 기다립니다.
+        float waitTimer = 0f;
+        while (currentStage == null)
+        {
+            if (waitTimer > 3.0f) // 3초 이상 등록이 안 되면 에러
+            {
+                Debug.LogError(sceneToLoad + " 씬에 Stage.cs가 없거나 등록에 실패했습니다!");
+                yield break; // 코루틴 중단
+            }
+            waitTimer += Time.deltaTime;
+            yield return null;
+        }
+        
+        // 4. Stage.cs 등록 완료! 플레이어를 스폰 지점으로 이동
+        Debug.Log(sceneToLoad + " 로드 완료 및 Stage 등록 완료.");
+        PlayerReposition();
     }
 
     void Update()
@@ -146,6 +183,9 @@ public class GameManager : MonoBehaviour
             // Result UI
             Debug.Log("죽었습니다.");
 
+            // "GameData.cs"에 현재 스테이지 인덱스 저장
+            GameData.StageToReload = stageIndex;
+
             // Retry Button UI
             // UIRestartBtn.SetActive(true);
             StartCoroutine(PlayerDeathSequence());
@@ -188,8 +228,11 @@ public class GameManager : MonoBehaviour
     public void Restart()
     {
         Time.timeScale = 1;
-        // 씬 0번(아마도 Core 씬 또는 모든 것을 로드하는 Loader 씬)을 로드
-        SceneManager.LoadScene(0);
+
+        // 처음부터 다시 시작하는 것이므로, 리로드할 스테이지를 0으로 리셋
+        GameData.StageToReload = 0;
+
+        SceneManager.LoadScene(0); // 0번 씬(Core)을 로드
     }
 
     public void RetryStage()
