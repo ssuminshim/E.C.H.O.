@@ -43,7 +43,7 @@ public class GameManager : MonoBehaviour
     public GameObject UIRestartBtn;
     public Camera mainCamera; // 줌인할 메인 카메라
     public string cutsceneSceneName; // 로드할 컷씬 씬의 이름
-    public float deathZoomDuration = 2.0f; // 줌인에 걸리는 시간 (초)
+    public float deathZoomDuration = 2.5f; // 줌인에 걸리는 시간 (초)
     public float targetZoomSize = 1.5f;    // 줌인 목표 크기 (숫자가 작을수록 줌인)
 
     private bool isDead = false;

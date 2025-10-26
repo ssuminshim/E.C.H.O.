@@ -1,5 +1,5 @@
 fileFormatVersion: 2
-guid: 604f4f15390364326b56d41934691f94
+guid: 66d1d0af2a5ce4d17a4123c93315a258
 TextureImporter:
   internalIDToNameTable: []
   externalObjects: {}
@@ -111,8 +111,8 @@ TextureImporter:
       physicsShape: []
       tessellationDetail: 0
       bones: []
-      spriteID: 6a7066b14b00045db81a6dda769de7ea
-      internalID: 844962082
+      spriteID: 4d130c5b296944cec97a100d348a0e7b
+      internalID: 2095358873
       vertices: []
       indices: 
       edges: []
@@ -132,8 +132,8 @@ TextureImporter:
       physicsShape: []
       tessellationDetail: 0
       bones: []
-      spriteID: 3cae1bf6a79124a828706bb45702836f
-      internalID: -336425782
+      spriteID: 058f74c32e72a4e80927d96b6995702b
+      internalID: 337135492
       vertices: []
       indices: 
       edges: []
@@ -153,8 +153,8 @@ TextureImporter:
       physicsShape: []
       tessellationDetail: 0
       bones: []
-      spriteID: 1b3804c01c73c4dda8f14fa9f283d069
-      internalID: 1549807457
+      spriteID: e114d741570644c42a2dc10264c1d099
+      internalID: 1158113847
       vertices: []
       indices: 
       edges: []
@@ -170,9 +170,9 @@ TextureImporter:
     weights: []
     secondaryTextures: []
     nameFileIdTable:
-      Jumping_0: 844962082
-      Jumping_1: -336425782
-      Jumping_2: 1549807457
+      Jumping_0: 2095358873
+      Jumping_1: 337135492
+      Jumping_2: 1158113847
   mipmapLimitGroupName: 
   pSDRemoveMatte: 0
   userData: 

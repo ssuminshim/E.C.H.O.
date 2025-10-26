@@ -1247,8 +1247,8 @@ MonoBehaviour:
   UIRestartBtn: {fileID: 1603594493499403960}
   mainCamera: {fileID: 4077181903093507244}
   cutsceneSceneName: PreviousLife
-  deathZoomDuration: 0.5
-  targetZoomSize: 0.1
+  deathZoomDuration: 3
+  targetZoomSize: 0.7
 --- !u!4 &7828445517128065541
 Transform:
   m_ObjectHideFlags: 0

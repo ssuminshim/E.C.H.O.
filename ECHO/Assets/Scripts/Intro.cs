@@ -35,7 +35,7 @@ public class Intro : MonoBehaviour
             // 마지막 대화가 끝나면 씬 전환
             else
             {
-                SceneManager.LoadScene("Main_Game_Scene");
+                SceneManager.LoadScene("Core");
                 dialogue_count = 0; // 필요 시 초기화
             }
         }
