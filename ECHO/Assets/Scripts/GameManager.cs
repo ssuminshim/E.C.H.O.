@@ -41,6 +41,12 @@ public class GameManager : MonoBehaviour
     public TMP_Text UIPoint;
     public TMP_Text UIStage;
     public GameObject UIRestartBtn;
+    public Camera mainCamera; // 줌인할 메인 카메라
+    public string cutsceneSceneName; // 로드할 컷씬 씬의 이름
+    public float deathZoomDuration = 2.0f; // 줌인에 걸리는 시간 (초)
+    public float targetZoomSize = 1.5f;    // 줌인 목표 크기 (숫자가 작을수록 줌인)
+
+    private bool isDead = false;
 
     void Start()
     {
@@ -53,14 +59,14 @@ public class GameManager : MonoBehaviour
         UIPoint.text = (totalPoint + stagePoint).ToString();
     }
 
-    // [추가됨] Stage.cs가 호출할 메서드
+    // Stage.cs가 호출할 메서드
     public void RegisterStage(Stage stage)
     {
         currentStage = stage;
         Debug.Log(stage.name + " 스테이지가 등록되었습니다.");
     }
 
-    // [수정됨] NextStage 로직을 코루틴으로 분리
+    // NextStage 로직을 코루틴으로 분리
     public void NextStage()
     {
         // Change Stage
@@ -117,6 +123,9 @@ public class GameManager : MonoBehaviour
 
     public void HealthDown()
     {
+
+        if (isDead) return;
+
         if (health > 1)
         {
             health--;
@@ -124,6 +133,10 @@ public class GameManager : MonoBehaviour
         }
         else
         {
+            // "죽음" 상태로 변경
+            isDead = true;
+            health = 0;
+
             // All Health UI Off
             UIhealth[0].color = new Color(1, 0, 0, 0.4f);
 
@@ -134,7 +147,8 @@ public class GameManager : MonoBehaviour
             Debug.Log("죽었습니다.");
 
             // Retry Button UI
-            UIRestartBtn.SetActive(true);
+            // UIRestartBtn.SetActive(true);
+            StartCoroutine(PlayerDeathSequence());
         }
     }
 
@@ -175,6 +189,73 @@ public class GameManager : MonoBehaviour
     {
         Time.timeScale = 1;
         // 씬 0번(아마도 Core 씬 또는 모든 것을 로드하는 Loader 씬)을 로드
-        SceneManager.LoadScene(0); 
+        SceneManager.LoadScene(0);
+    }
+
+    public void RetryStage()
+    {
+        isDead = false;
+
+        // 1. 시간 다시 흐르게
+        Time.timeScale = 1;
+
+        // 2. 리트라이 버튼 숨기기
+        UIRestartBtn.SetActive(false);
+
+        // 3. 체력 변수 초기화 (최대 체력값으로)
+        health = 3; // (최대 체력이 3이라고 가정)
+
+        // 4. 체력 UI 초기화 (전부 꽉 찬 색으로)
+        for (int i = 0; i < UIhealth.Length; i++)
+        {
+            // (꽉 찬 하트의 원래 색상으로 변경, 예: 흰색)
+            UIhealth[i].color = new Color(1, 1, 1, 1);
+        }
+
+        // 5. 플레이어 스크립트에 "부활" 신호 보내기
+        player.Respawn(); // PlayerMove.cs에 Respawn()이 있어야 함
+
+        // 6. 현재 스테이지의 스폰포인트로 플레이어 이동
+        PlayerReposition();
+    }
+    
+    // 플레이어 사망 연출 코루틴
+    IEnumerator PlayerDeathSequence()
+    {
+        // 1. Die 애니메이션이 재생될 시간을 잠시 기다립니다.
+        yield return new WaitForSeconds(0.5f); // 0.5초 대기 (Die 애니메이션 길이에 맞춰 조절)
+
+        // 2. 줌인 목표 지점(플레이어 머리)과 시작 값 설정
+        // (카메라의 z축 위치는 그대로 유지해야 함)
+        Vector3 targetPosition = new Vector3(
+            player.headTransform.position.x, 
+            player.headTransform.position.y, 
+            mainCamera.transform.position.z
+        );
+        Vector3 startPosition = mainCamera.transform.position;
+        float startZoomSize = mainCamera.orthographicSize;
+
+        float timer = 0f;
+
+        // 3. 줌인 루프 (정해진 시간(deathZoomDuration) 동안 실행)
+        while (timer < deathZoomDuration)
+        {
+            // 시간을 0~1 사이의 비율로 변환 (부드러운 이동을 위해 SmoothStep 사용)
+            float t = timer / deathZoomDuration;
+            float smoothT = t * t * (3f - 2f * t); // SmoothStep
+
+            // 카메라 위치와 줌(orthographicSize)을 부드럽게 변경
+            mainCamera.transform.position = Vector3.Lerp(startPosition, targetPosition, smoothT);
+            mainCamera.orthographicSize = Mathf.Lerp(startZoomSize, targetZoomSize, smoothT);
+
+            timer += Time.deltaTime;
+            yield return null; // 다음 프레임까지 대기
+        }
+
+        // 4. (선택) 줌인 완료 후 잠시 멈춰서 보여주기
+        yield return new WaitForSeconds(1.0f); // 1초간 줌인 상태 유지
+
+        // 5. 컷씬 씬 로드
+        SceneManager.LoadScene(cutsceneSceneName);
     }
 }

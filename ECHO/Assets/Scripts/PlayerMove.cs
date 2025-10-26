@@ -6,6 +6,7 @@ using UnityEngine;
 public class PlayerMove : MonoBehaviour
 {
     public GameManager gameManager;
+    public Transform headTransform;
     public AudioClip audioJump;
     public AudioClip audioAttack;
     public AudioClip audioDamaged;
@@ -31,6 +32,8 @@ public class PlayerMove : MonoBehaviour
     private int originalLayer;
     private int climbingLayer; // Climbing 레이어 인덱스
     private float defaultGravityScale = 4f; // RigidBody2D의 초기 Gravity Scale 값이라고 가정
+
+    private bool isDead = false;
 
     void Awake()
     {
@@ -102,6 +105,9 @@ public class PlayerMove : MonoBehaviour
     {
         verticalInput = Input.GetAxisRaw("Vertical");
         float h = Input.GetAxisRaw("Horizontal");
+
+        // 플레이어가 죽으면 Update 로직 실행 X
+        if (isDead) return;
 
         // 1. 사다리 진입 로직
         // 사다리 중앙 근처에 있어야 진입 가능
@@ -224,11 +230,11 @@ public class PlayerMove : MonoBehaviour
         if (collision.gameObject.tag == "Enemy")
         {
             // Attack
-            if (rigid.velocity.y < 0 && transform.position.y > collision.transform.position.y)
-            {
-                OnAttack(collision.transform);
-            }
-            else    // Damaged
+            // if (rigid.velocity.y < 0 && transform.position.y > collision.transform.position.y)
+            // {
+            //     OnAttack(collision.transform);
+            // }
+            //else    // Damaged
             {
                 OnDamaged(collision.transform.position);
             }
@@ -319,22 +325,22 @@ public class PlayerMove : MonoBehaviour
     }
 
     // 나중에 공격 삭제
-    void OnAttack(Transform enemy)
-    {
-        // Point
-        gameManager.stagePoint += 100;
+    // void OnAttack(Transform enemy)
+    // {
+    //     // Point
+    //     gameManager.stagePoint += 100;
 
-        // Reaction Force
-        rigid.AddForce(Vector2.up * 10, ForceMode2D.Impulse);
+    //     // Reaction Force
+    //     rigid.AddForce(Vector2.up * 10, ForceMode2D.Impulse);
 
-        // Enemy Die
-        EnemyMove enemyMove = enemy.GetComponent<EnemyMove>();
-        enemyMove.OnDamaged();
+    //     // Enemy Die
+    //     EnemyMove enemyMove = enemy.GetComponent<EnemyMove>();
+    //     enemyMove.OnDamaged();
 
-        // Sound
-        PlaySound("ATTACK");
+    //     // Sound
+    //     PlaySound("ATTACK");
 
-    }
+    // }
 
     void OffDamaged()
     {
@@ -344,36 +350,77 @@ public class PlayerMove : MonoBehaviour
 
     public void OnDie()
     {
-        // Sprite Alpha
+        // 1. 사망 상태로 변경 (Update() 조작을 막음)
+        isDead = true;
+
+        // 2. 물리 효과 정지
+        rigid.velocity = Vector2.zero; // 현재 속도를 0으로
+        rigid.simulated = false;       // 중력 및 모든 물리 시뮬레이션을 끔 (바닥으로 안 떨어짐)
+
+        // 3. 충돌체 비활성화
+        capsulecollider.enabled = false;
+
+        // 4. Sprite Alpha
         spriteRenderer.color = new Color(1, 1, 1, 0.4f);
 
-        // Sprite Flip Y
-        // spriteRenderer.flipY = true;
+        // 5. 사망 애니메이션 재생
+        // (Animator에 "Die"라는 이름의 Trigger를 만들었다고 가정)
+        anim.SetTrigger("isDead");
 
-        // Collider Disable
-        // capsulecollider.enabled = false;
-
-        // Die Effect Jump
-        // rigid.AddForce(Vector2.up, ForceMode2D.Impulse);
-
-        // Sound
+        // 6. Sound (기존 코드)
         PlaySound("DIE");
+    }
+
+    public void Respawn()
+    {
+        // 1. 생존 상태로 변경 (Update() 조작을 다시 받음)
+        isDead = false;
+
+        // 2. 물리/충돌 복구
+        rigid.simulated = true;
+        capsulecollider.enabled = true;
+
+        // 3. 시각적/상태 복구
+        spriteRenderer.color = new Color(1, 1, 1, 1f);
+        rigid.gravityScale = defaultGravityScale;
+        gameObject.layer = originalLayer;
+
+        // 4. 사다리 상태 강제 초기화 (기존 코드)
+        if (isClimbing)
+        {
+            isClimbing = false;
+            currentLadder = null;
+        }
+
+        // 5. [가장 중요!] 애니메이터 리셋
+        // 'Die' Trigger가 남아있는 것을 방지
+        anim.ResetTrigger("isDead");
+        // 'Idle' 상태로 돌아가도록 'Respawn' Trigger 발동 (Animator에서 설정한 것)
+        anim.SetTrigger("Respawn");
+
+        // 6. (안전을 위한) bool들도 초기화
+        anim.SetBool("isClimbing", false);
+        anim.SetBool("isHanging", false);
+        anim.SetBool("isJumping", false);
+        anim.SetBool("isWalking", false);
     }
 
     public void VelocityZero()
     {
         rigid.velocity = Vector2.zero;
     }
-    
+
     bool IsGrounded()
     {
         // 플레이어의 현재 위치에서 아래 방향으로 0.1f 길이의 선을 쏴서
         // 'Platform' 레이어를 가진 콜라이더가 감지되는지 확인
         // new Vector2(0, -0.5f)는 레이 시작 위치를 발밑 근처로 조정하는 오프셋
-        RaycastHit2D rayHit = Physics2D.Raycast((Vector2)transform.position + new Vector2(0, -0.5f), 
+        RaycastHit2D rayHit = Physics2D.Raycast((Vector2)transform.position + new Vector2(0, -0.5f),
                                                 Vector2.down, 0.1f, LayerMask.GetMask("Platform"));
-        
+
         // 감지된 콜라이더가 있다면(null이 아니라면) 땅에 서 있는 것!
         return rayHit.collider != null;
     }
+    
+
 }
