@@ -7,8 +7,9 @@ public class PlayerMove : MonoBehaviour
 {
     public GameManager gameManager;
     public Transform headTransform;
+    public AudioClip audioWalk;
     public AudioClip audioJump;
-    public AudioClip audioAttack;
+    public AudioClip audioLand;
     public AudioClip audioDamaged;
     public AudioClip audioItem;
     public AudioClip audioDie;
@@ -51,6 +52,14 @@ public class PlayerMove : MonoBehaviour
         defaultGravityScale = rigid.gravityScale;
     }
 
+    public void PlayWalkSound()
+    {
+        if (audioWalk != null)
+        {
+            audioSource.PlayOneShot(audioWalk);
+        }
+    }
+
     void PlaySound(string action)
     {
         switch (action)
@@ -58,8 +67,8 @@ public class PlayerMove : MonoBehaviour
             case "JUMP":
                 audioSource.clip = audioJump;
                 break;
-            case "ATTACK":
-                audioSource.clip = audioAttack;
+            case "LAND":
+                audioSource.clip = audioLand;
                 break;
             case "DAMAGED":
                 audioSource.clip = audioDamaged;
@@ -100,7 +109,6 @@ public class PlayerMove : MonoBehaviour
         anim.SetBool("isHanging", false);
     }
 
-
     void Update()
     {
         verticalInput = Input.GetAxisRaw("Vertical");
@@ -126,11 +134,12 @@ public class PlayerMove : MonoBehaviour
                     StartClimbing();
                 }
                 // 2. 위로 올라갈 때 (W키): 땅에 서있지 않을 때만 가능해야 함
-                else if (verticalInput > 0 && !IsGrounded()) 
+                else if (verticalInput > 0 && !IsGrounded())
                 {
                     StartClimbing();
                 }
             }
+            
         }
 
         // 2. 사다리 이동 및 상태 관리
@@ -220,8 +229,17 @@ public class PlayerMove : MonoBehaviour
         if (rigid.velocity.y < 0)
         {
             RaycastHit2D rayHit = Physics2D.Raycast(rigid.position, Vector2.down, 1f, LayerMask.GetMask("Platform"));
-            if (rayHit.collider != null && rayHit.distance < 0.5f)
+
+            // 땅에 닿았고 (rayHit.collider != null)
+            // '점프 중' 상태였다면 (anim.GetBool("isJumping") == true)
+            if (rayHit.collider != null && rayHit.distance < 0.5f && anim.GetBool("isJumping"))
+            {
+                // 1. 착지 상태로 변경 (다음 프레임부터 이 조건문에 안 들어옴)
                 anim.SetBool("isJumping", false);
+
+                // 2. 착지 사운드 재생
+                PlaySound("LAND");
+            }
         }
     }
 
@@ -229,15 +247,8 @@ public class PlayerMove : MonoBehaviour
     {
         if (collision.gameObject.tag == "Enemy")
         {
-            // Attack
-            // if (rigid.velocity.y < 0 && transform.position.y > collision.transform.position.y)
-            // {
-            //     OnAttack(collision.transform);
-            // }
-            //else    // Damaged
-            {
-                OnDamaged(collision.transform.position);
-            }
+            // 데미지 입었을 때
+            OnDamaged(collision.transform.position);
         }
     }
 
@@ -323,24 +334,6 @@ public class PlayerMove : MonoBehaviour
 
         Invoke("OffDamaged", 1.5f);
     }
-
-    // 나중에 공격 삭제
-    // void OnAttack(Transform enemy)
-    // {
-    //     // Point
-    //     gameManager.stagePoint += 100;
-
-    //     // Reaction Force
-    //     rigid.AddForce(Vector2.up * 10, ForceMode2D.Impulse);
-
-    //     // Enemy Die
-    //     EnemyMove enemyMove = enemy.GetComponent<EnemyMove>();
-    //     enemyMove.OnDamaged();
-
-    //     // Sound
-    //     PlaySound("ATTACK");
-
-    // }
 
     void OffDamaged()
     {

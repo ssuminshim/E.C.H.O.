@@ -44,10 +44,10 @@ public class PreviousLifeManager : MonoBehaviour
         // "재도전"이 활성화됐고, 스페이스바를 눌렀다면
         if (canRetry && Input.GetKeyDown(KeyCode.Space))
         {
-            // Core 씬(0번 씬)을 로드합니다.
+            // Core 씬을 로드
             // Core 씬의 GameManager는 GameData.StageToReload 값을 읽어서
-            // 우리가 죽었던 그 스테이지를 알아서 로드할 것입니다.
-            SceneManager.LoadScene(0);
+            // 우리가 죽었던 그 스테이지를 알아서 로드
+            SceneManager.LoadScene("Core");
         }
     }
 }

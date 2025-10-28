@@ -31,10 +31,10 @@ public class GameManager : MonoBehaviour
     public int health;
     public PlayerMove player;
     
-    // [변경됨] GameObject 배열 대신 씬 이름 리스트로 변경
+    // GameObject 배열 대신 씬 이름 리스트로 변경
     public List<string> stageSceneNames = new List<string>();
     
-    // [추가됨] 현재 스테이지의 정보를 저장할 변수
+    // 현재 스테이지의 정보를 저장할 변수
     private Stage currentStage; 
 
     public Image[] UIhealth;
@@ -48,8 +48,27 @@ public class GameManager : MonoBehaviour
 
     private bool isDead = false;
 
+    // [자리 비움 감지 기능 변수 추가]
+    // 1. 인스펙터에서 연결할 팝업 UI
+    public GameObject inactivityPopup;
+    // 2. 제한 시간 (초 단위) (3분 = 180초)
+    public float inactivityLimit = 180f;
+    // 3. 팝업이 뜬 후 대기할 시간 (초 단위)
+    public float popupDuration = 5f;
+    // 4. 내부 타이머 변수
+    private float inactivityTimer = 0f;
+    // 5. 팝업이 떴는지 확인하는 변수
+    private bool isInactive = false;
+
     void Start()
     {
+        // 자리 비움 타이머 및 팝업 초기화
+        if (inactivityPopup != null)
+            inactivityPopup.SetActive(false);
+        isInactive = false;
+        inactivityTimer = 0f;
+        Time.timeScale = 1f; // (혹시 모르니 시간 흐름 복구)
+
         // "GameData.cs"에 저장된 스테이지 인덱스를 가져옴
         stageIndex = GameData.StageToReload;
 
@@ -62,18 +81,18 @@ public class GameManager : MonoBehaviour
 
     IEnumerator LoadInitialStage()
     {
-        // 1. stageIndex에 맞는 씬 이름을 가져옵니다.
+        // 1. stageIndex에 맞는 씬 이름을 가져옴
         string sceneToLoad = stageSceneNames[stageIndex];
         
-        // 2. 해당 씬을 추가로 로드합니다.
+        // 2. 해당 씬을 추가로 로드
         AsyncOperation asyncLoad = SceneManager.LoadSceneAsync(sceneToLoad, LoadSceneMode.Additive);
         while (!asyncLoad.isDone)
         {
             yield return null; // 로드 완료까지 대기
         }
 
-        // 3. (중요) 새로 로드된 씬의 Stage.cs가
-        // GameManager에게 등록할 때까지 잠시 기다립니다.
+        // 3. 새로 로드된 씬의 Stage.cs가
+        // GameManager에게 등록할 때까지 잠시 기다림
         float waitTimer = 0f;
         while (currentStage == null)
         {
@@ -94,6 +113,37 @@ public class GameManager : MonoBehaviour
     void Update()
     {
         UIPoint.text = (totalPoint + stagePoint).ToString();
+
+        // [자리 비움 감지 로직 추가]
+        // 1. 이미 팝업이 떴다면 타이머를 실행하지 않음
+        if (isInactive)
+        {
+            return;
+        }
+
+        // 2. 키보드, 마우스 등 '아무' 입력이라도 감지되면
+        if (Input.anyKeyDown || 
+            Input.GetAxisRaw("Horizontal") != 0 || 
+            Input.GetAxisRaw("Vertical") != 0 ||
+            Input.GetAxis("Mouse X") != 0 ||
+            Input.GetAxis("Mouse Y") != 0)
+        {
+            // 3. 타이머를 리셋
+            inactivityTimer = 0f;
+        }
+        else
+        {
+            // 4. 아무 입력이 없으면 타이머 시간 증가
+            inactivityTimer += Time.deltaTime;
+        }
+
+        // 5. 타이머가 제한 시간을 초과하면
+        if (inactivityTimer >= inactivityLimit)
+        {
+            // 6. "비활성" 상태로 만들고 팝업 코루틴을 실행 (한 번만)
+            isInactive = true;
+            StartCoroutine(ReturnToMainMenuRoutine());
+        }
     }
 
     // Stage.cs가 호출할 메서드
@@ -120,7 +170,7 @@ public class GameManager : MonoBehaviour
             Debug.Log("게임 클리어!");
 
             // Restart Button UI
-            // [버그 수정] Text -> TMP_Text
+            // Text -> TMP_Text
             TMP_Text btnText = UIRestartBtn.GetComponentInChildren<TMP_Text>();
             if (btnText != null)
                 btnText.text = "Clear!";
@@ -128,7 +178,7 @@ public class GameManager : MonoBehaviour
         }
     }
 
-    // [추가됨] 씬을 비동기(Async)로 로드/언로드하는 코루틴
+    // 씬을 비동기(Async)로 로드/언로드하는 코루틴
     IEnumerator NextStageRoutine()
     {
         // 1. 현재 스테이지 씬을 언로드
@@ -207,7 +257,7 @@ public class GameManager : MonoBehaviour
         }
     }
 
-    // [수정됨] 현재 스테이지의 스폰 지점을 사용
+    // 현재 스테이지의 스폰 지점을 사용
     void PlayerReposition()
     {
         if (currentStage != null && currentStage.spawnPoint != null)
@@ -232,7 +282,7 @@ public class GameManager : MonoBehaviour
         // 처음부터 다시 시작하는 것이므로, 리로드할 스테이지를 0으로 리셋
         GameData.StageToReload = 0;
 
-        SceneManager.LoadScene(0); // 0번 씬(Core)을 로드
+        SceneManager.LoadScene("Core"); // Core씬 로드
     }
 
     public void RetryStage()
@@ -261,18 +311,18 @@ public class GameManager : MonoBehaviour
         // 6. 현재 스테이지의 스폰포인트로 플레이어 이동
         PlayerReposition();
     }
-    
+
     // 플레이어 사망 연출 코루틴
     IEnumerator PlayerDeathSequence()
     {
-        // 1. Die 애니메이션이 재생될 시간을 잠시 기다립니다.
+        // 1. Die 애니메이션이 재생될 시간을 잠시 기다림
         yield return new WaitForSeconds(0.5f); // 0.5초 대기 (Die 애니메이션 길이에 맞춰 조절)
 
         // 2. 줌인 목표 지점(플레이어 머리)과 시작 값 설정
         // (카메라의 z축 위치는 그대로 유지해야 함)
         Vector3 targetPosition = new Vector3(
-            player.headTransform.position.x, 
-            player.headTransform.position.y, 
+            player.headTransform.position.x,
+            player.headTransform.position.y,
             mainCamera.transform.position.z
         );
         Vector3 startPosition = mainCamera.transform.position;
@@ -300,5 +350,25 @@ public class GameManager : MonoBehaviour
 
         // 5. 컷씬 씬 로드
         SceneManager.LoadScene(cutsceneSceneName);
+    }
+    
+    IEnumerator ReturnToMainMenuRoutine()
+    {
+        Debug.Log("자리 비움 감지됨. 팝업을 띄웁니다.");
+        
+        // 1. 팝업 UI를 켬
+        if (inactivityPopup != null)
+            inactivityPopup.SetActive(true);
+
+        // 2. 팝업이 떠 있는 시간(popupDuration)만큼 대기
+        yield return new WaitForSeconds(popupDuration);
+
+        Debug.Log("메인 메뉴로 돌아갑니다.");
+        
+        // 3. (필수) 시간 정지 상태일 수 있으니 1로 복구
+        Time.timeScale = 1f; 
+        
+        // 4. MainMenu 씬을 로드
+        SceneManager.LoadScene("MainMenu");
     }
 }
