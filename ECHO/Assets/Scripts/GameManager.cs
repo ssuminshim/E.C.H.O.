@@ -45,20 +45,29 @@ public class GameManager : MonoBehaviour
     public string cutsceneSceneName; // 로드할 컷씬 씬의 이름
     public float deathZoomDuration; // 줌인에 걸리는 시간 (초)
     public float targetZoomSize;    // 줌인 목표 크기 (숫자가 작을수록 줌인)
+    public Sprite fullHeartSprite;  // 인스펙터에서 '찬 하트' 이미지를 연결할 변수
+    public Sprite emptyHeartSprite; // 인스펙터에서 '빈 하트' 이미지를 연결할 변수
 
     private bool isDead = false;
 
-    // [자리 비움 감지 기능 변수 추가]
-    // 1. 인스펙터에서 연결할 팝업 UI
-    public GameObject inactivityPopup;
-    // 2. 제한 시간 (초 단위) (3분 = 180초)
-    public float inactivityLimit = 180f;
-    // 3. 팝업이 뜬 후 대기할 시간 (초 단위)
-    public float popupDuration = 5f;
-    // 4. 내부 타이머 변수
-    private float inactivityTimer = 0f;
-    // 5. 팝업이 떴는지 확인하는 변수
-    private bool isInactive = false;
+    public GameObject inactivityPopup;  // 인스펙터에서 연결할 팝업 UI
+    public float inactivityLimit = 180f;    // 제한 시간 (초 단위)
+    public float popupDuration = 5f;    // 팝업이 뜬 후 대기할 시간 (초 단위)
+    private float inactivityTimer = 0f; // 내부 타이머 변수
+    private bool isInactive = false;    // 팝업이 떴는지 확인하는 변수
+
+    // [아이템 획득 팝업 UI 변수 추가]
+    public GameObject itemPopupPanel; // 획득! 창 (Panel)
+    public TMP_Text itemPopupText;  // 획득! 창의 텍스트
+
+    // [미션 UI 변수 추가]
+    public TMP_Text UIMissionText;  // 오른쪽 상단 미션 텍스트
+
+    // [미션 진행도 변수 추가]
+    private int cardKeysCollected = 0;
+    private int cardKeysNeeded = 3; // Stage 4에서 필요한 카드키 수
+    private string stage4Mission_InProgress = "카드키를 획득하여 기억보관장치를 가동시키자.";
+    private string stage4Mission_Complete = "카드키를 모두 얻었다. 이제 기억보관장치를 가동시켜보자.";
 
     void Start()
     {
@@ -68,6 +77,12 @@ public class GameManager : MonoBehaviour
         isInactive = false;
         inactivityTimer = 0f;
         Time.timeScale = 1f; // (혹시 모르니 시간 흐름 복구)
+
+        // [추가] UI 초기화
+        if (itemPopupPanel != null)
+            itemPopupPanel.SetActive(false); // 아이템 팝업 숨기기
+        if (UIMissionText != null)
+            UIMissionText.text = ""; // 미션 텍스트 비우기
 
         // "GameData.cs"에 저장된 스테이지 인덱스를 가져옴
         stageIndex = GameData.StageToReload;
@@ -108,6 +123,9 @@ public class GameManager : MonoBehaviour
         // 4. Stage.cs 등록 완료! 플레이어를 스폰 지점으로 이동
         Debug.Log(sceneToLoad + " 로드 완료 및 Stage 등록 완료.");
         PlayerReposition();
+
+        // 스테이지에 맞는 미션 설정
+        SetupMissionForStage(stageIndex);
     }
 
     void Update()
@@ -216,7 +234,8 @@ public class GameManager : MonoBehaviour
         if (health > 1)
         {
             health--;
-            UIhealth[health].color = new Color(1, 0, 0, 0.4f);
+            // UIhealth[health].color = new Color(1, 0, 0, 0.4f);
+            UIhealth[health].sprite = emptyHeartSprite;
         }
         else
         {
@@ -225,7 +244,8 @@ public class GameManager : MonoBehaviour
             health = 0;
 
             // All Health UI Off
-            UIhealth[0].color = new Color(1, 0, 0, 0.4f);
+            // UIhealth[0].color = new Color(1, 0, 0, 0.4f);
+            UIhealth[0].sprite = emptyHeartSprite;
 
             // Player Die Effect
             player.OnDie();
@@ -302,7 +322,8 @@ public class GameManager : MonoBehaviour
         for (int i = 0; i < UIhealth.Length; i++)
         {
             // (꽉 찬 하트의 원래 색상으로 변경, 예: 흰색)
-            UIhealth[i].color = new Color(1, 1, 1, 1);
+            // UIhealth[i].color = new Color(1, 1, 1, 1);
+            UIhealth[i].sprite = fullHeartSprite;
         }
 
         // 5. 플레이어 스크립트에 "부활" 신호 보내기
@@ -351,11 +372,11 @@ public class GameManager : MonoBehaviour
         // 5. 컷씬 씬 로드
         SceneManager.LoadScene(cutsceneSceneName);
     }
-    
+
     IEnumerator ReturnToMainMenuRoutine()
     {
         Debug.Log("자리 비움 감지됨. 팝업을 띄웁니다.");
-        
+
         // 1. 팝업 UI를 켬
         if (inactivityPopup != null)
             inactivityPopup.SetActive(true);
@@ -364,11 +385,72 @@ public class GameManager : MonoBehaviour
         yield return new WaitForSeconds(popupDuration);
 
         Debug.Log("메인 메뉴로 돌아갑니다.");
-        
+
         // 3. (필수) 시간 정지 상태일 수 있으니 1로 복구
-        Time.timeScale = 1f; 
-        
+        Time.timeScale = 1f;
+
         // 4. MainMenu 씬을 로드
         SceneManager.LoadScene("MainMenu");
+    }
+    
+    void SetupMissionForStage(int index)
+    {
+        // Stage 4의 인덱스가 3이라고 가정 (0,1,2,3)
+        if (index == 3) 
+        {
+            cardKeysCollected = 0; // 스테이지 시작 시 카드키 초기화
+            cardKeysNeeded = 3;    // 필요한 카드키 수 설정
+            UIMissionText.text = stage4Mission_InProgress; // 미션 텍스트 설정
+        }
+        else
+        {
+            // 다른 스테이지는 미션 없음
+            UIMissionText.text = ""; 
+        }
+    }
+    // [새로 추가] Item.cs가 이 함수를 호출
+    public void OnItemCollected(string itemName, string message)
+    {
+        // 1. 팝업 코루틴 실행
+        StartCoroutine(ShowItemPopup(message));
+
+        // 2. 미션 진행도 업데이트
+        if (itemName == "CardKey")
+        {
+            cardKeysCollected++;
+            CheckMissionProgress(); // 미션 상태 확인
+        }
+        // (else if (itemName == "HealthPotion") { ... } 등등)
+    }
+
+    // [새로 추가] 아이템 팝업을 2초간 띄웠다가 숨기는 코루틴
+    IEnumerator ShowItemPopup(string message)
+    {
+        itemPopupText.text = message;
+        itemPopupPanel.SetActive(true);
+
+        yield return new WaitForSeconds(2.0f); // 2초 대기
+
+        itemPopupPanel.SetActive(false);
+    }
+
+    // [새로 추가] 미션이 완료되었는지 확인하는 함수
+    void CheckMissionProgress()
+    {
+        // 현재 스테이지가 Stage 4 (인덱스 3)일 때만 확인
+        if (stageIndex == 3)
+        {
+            if (cardKeysCollected >= cardKeysNeeded)
+            {
+                // 카드키를 다 모았다면
+                UIMissionText.text = stage4Mission_Complete;
+            }
+            else
+            {
+                // 아직 덜 모았다면 (이건 요청엔 없었지만 더 친절한 UI)
+                UIMissionText.text = "카드키 (" + cardKeysCollected + "/" + cardKeysNeeded + ") 획득.";
+                // 원래 요청대로 하려면 이 else문을 지우세요.
+            }
+        }
     }
 }
