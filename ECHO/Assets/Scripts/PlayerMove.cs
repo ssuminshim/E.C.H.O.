@@ -94,8 +94,10 @@ public class PlayerMove : MonoBehaviour
 
         rigid.velocity = new Vector2(0, 0); // 현재 속도 초기화
         anim.SetBool("isClimbing", true);
-        anim.SetBool("isHanging", false);
         anim.SetBool("isJumping", false);
+
+        // 일단 멈춘 상태로 사다리에 붙도록 설정
+        anim.SetFloat("climbSpeed", 0f);
     }
 
     void StopClimbing()
@@ -106,7 +108,9 @@ public class PlayerMove : MonoBehaviour
 
         currentLadder = null; // 현재 사다리 참조 해제
         anim.SetBool("isClimbing", false);
-        anim.SetBool("isHanging", false);
+        
+        // 애니메이션 속도를 기본값 1로 복구
+        anim.SetFloat("climbSpeed", 1f);
     }
 
     void Update()
@@ -149,26 +153,19 @@ public class PlayerMove : MonoBehaviour
             float yVelocity = verticalInput * climbSpeed;
 
             // W/S를 누르지 않고 A/D만 눌렀을 때도 매달림 상태 유지
-            if (verticalInput != 0)
+            if (verticalInput != 0 || h != 0)
             {
-                // Y축 이동 중
+                // 이동 중
                 rigid.velocity = new Vector2(xVelocity, yVelocity);
-                anim.SetBool("isClimbing", true);
-                anim.SetBool("isHanging", false);
-            }
-            else if (h != 0)
-            {
-                // W/S를 떼고 A/D만 누를 때 (좌우 이동 매달림 상태)
-                rigid.velocity = new Vector2(xVelocity, 0);
-                anim.SetBool("isClimbing", false);
-                anim.SetBool("isHanging", true);
+
+                // 애니메이션 재생
+                anim.SetFloat("climbSpeed", 1f);
             }
             else
             {
                 // 모든 입력이 없을 때: 매달림 (Hanging) 상태로 속도 0 고정
                 rigid.velocity = Vector2.zero;
-                anim.SetBool("isClimbing", false);
-                anim.SetBool("isHanging", true);
+                anim.SetFloat("climbSpeed", 0f);
             }
 
             // A/D 키를 눌렀을 때 좌우 반전 (유지)
@@ -211,7 +208,6 @@ public class PlayerMove : MonoBehaviour
             // 플레이어가 땅에 서 있거나 걷고 있을 때 (isClimbing이 아닐 때), 
             // 사다리 관련 애니메이션은 확실히 꺼줌
             anim.SetBool("isClimbing", false);
-            anim.SetBool("isHanging", false); 
         }
     }
 
@@ -388,7 +384,7 @@ public class PlayerMove : MonoBehaviour
             currentLadder = null;
         }
 
-        // 5. [가장 중요!] 애니메이터 리셋
+        // 5. 애니메이터 리셋
         // 'Die' Trigger가 남아있는 것을 방지
         anim.ResetTrigger("isDead");
         // 'Idle' 상태로 돌아가도록 'Respawn' Trigger 발동 (Animator에서 설정한 것)
@@ -396,7 +392,6 @@ public class PlayerMove : MonoBehaviour
 
         // 6. (안전을 위한) bool들도 초기화
         anim.SetBool("isClimbing", false);
-        anim.SetBool("isHanging", false);
         anim.SetBool("isJumping", false);
         anim.SetBool("isWalking", false);
     }

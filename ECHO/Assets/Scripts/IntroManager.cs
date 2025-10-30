@@ -40,4 +40,11 @@ public class Intro : MonoBehaviour
             }
         }
     }
+
+    // 메인메뉴로 돌아가는 함수
+    public void ReturnToMainMenu()
+    {
+        // "MainMenu" 씬을 로드합니다.
+        SceneManager.LoadScene("MainMenu");
+    }
 }
