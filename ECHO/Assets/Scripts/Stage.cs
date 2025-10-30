@@ -14,7 +14,7 @@ public class Stage : MonoBehaviour
         }
         else
         {
-            Debug.LogError("GameManager.Instance를 찾을 수 없습니다! '#03Core' 씬이 먼저 로드되었는지 확인하세요.");
+            Debug.LogError("GameManager.Instance를 찾을 수 없습니다! 'Core' 씬이 먼저 로드되었는지 확인하세요.");
         }
     }
 }

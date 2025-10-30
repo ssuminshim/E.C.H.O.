@@ -30,7 +30,7 @@ public class LoadingScenario : MonoBehaviour
 
 	private void OnAfterProgress()
     {
-		SceneManager.LoadScene("#03Core");
+		SceneManager.LoadScene("Core");
     }
 }
 

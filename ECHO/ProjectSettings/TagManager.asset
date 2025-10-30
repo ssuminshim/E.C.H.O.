@@ -8,6 +8,7 @@ TagManager:
   - Item
   - Platform
   - Ladder
+  - Machine
   layers:
   - Default
   - TransparentFX

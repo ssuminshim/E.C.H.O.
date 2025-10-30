@@ -50,7 +50,7 @@ public class Memory : MonoBehaviour
             // 마지막 대화가 끝나면 씬 전환
             else
             {
-                SceneManager.LoadScene("#03Core");
+                SceneManager.LoadScene("#Core");
                 dialogue_count = 0; // 필요 시 초기화
             }
 

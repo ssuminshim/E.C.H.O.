@@ -67,6 +67,9 @@ public class GameManager : MonoBehaviour
     private string stage4Mission_InProgress = "카드키를 획득하여 기억보관장치를 가동시키자.";
     private string stage4Mission_Complete = "카드키를 모두 얻었다. 이제 기억보관장치를 가동시켜보자.";
 
+    // 머신 상호작용 완료 시 활성화할 패널
+    public GameObject machineCompletionPanel;
+
     void Start()
     {
         // 자리 비움 타이머 및 팝업 초기화
@@ -81,6 +84,10 @@ public class GameManager : MonoBehaviour
             itemPopupPanel.SetActive(false); // 아이템 팝업 숨기기
         if (UIMissionText != null)
             UIMissionText.text = ""; // 미션 텍스트 비우기
+
+        // [추가] 머신 완료 패널 숨기기
+        if (machineCompletionPanel != null)
+            machineCompletionPanel.SetActive(false);
 
         // "GameData.cs"에 저장된 스테이지 인덱스를 가져옴
         stageIndex = GameData.StageToReload;
@@ -441,10 +448,29 @@ public class GameManager : MonoBehaviour
             }
             else
             {
-                // 아직 덜 모았다면 (이건 요청엔 없었지만 더 친절한 UI)
+                // 아직 덜 모았다면
                 UIMissionText.text = "카드키 (" + cardKeysCollected + "/" + cardKeysNeeded + ") 획득.";
-                // 원래 요청대로 하려면 이 else문을 지우세요.
             }
+        }
+    }
+    // 🌟 Machine.cs가 머신 상호작용 가능 여부를 물어볼 때 사용
+    public bool IsCardKeyMissionComplete()
+    {
+        // Stage 4 (인덱스 3)이고, 필요한 카드키를 모두 모았을 때만 True 반환
+        return stageIndex == 3 && cardKeysCollected >= cardKeysNeeded;
+    }
+
+    // 🌟 Machine.cs가 최종 상호작용을 요청할 때 호출
+    public void ActivateCompletionPanel()
+    {
+        if (machineCompletionPanel != null)
+        {
+            machineCompletionPanel.SetActive(true);
+            Debug.Log("미션 완료! 머신 패널이 활성화되었습니다.");
+        }
+        else
+        {
+            Debug.LogError("Machine Completion Panel이 GameManager에 연결되어 있지 않습니다!");
         }
     }
 }
