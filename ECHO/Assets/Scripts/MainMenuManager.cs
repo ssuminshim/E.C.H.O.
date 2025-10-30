@@ -9,7 +9,7 @@ public class MainMenuManager : MonoBehaviour
         GameData.StageToReload = 0;
         
         // 2. Intro 씬 로드
-        SceneManager.LoadScene("Intro");
+        SceneManager.LoadScene("#01Intro");
     }
 
     // (선택) 게임 종료 버튼

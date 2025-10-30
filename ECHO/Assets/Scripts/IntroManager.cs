@@ -13,7 +13,6 @@ public class Intro : MonoBehaviour
     [SerializeField]
     private Image image4;
 
-
     public Text ScriptText_dialogue;
     public Text ScriptText_instruction;
     public string[] dialogue; // 인스펙터 창에서 대화 내용 수정 가능
@@ -48,7 +47,7 @@ public class Intro : MonoBehaviour
             // 마지막 대화가 끝나면 씬 전환
             else
             {
-                SceneManager.LoadScene("Core");
+                SceneManager.LoadScene("#02Loading");
                 dialogue_count = 0; // 필요 시 초기화
             }
         }
@@ -92,6 +91,6 @@ public class Intro : MonoBehaviour
     public void ReturnToMainMenu()
     {
         // "MainMenu" 씬을 로드합니다.
-        SceneManager.LoadScene("MainMenu");
+        SceneManager.LoadScene("#00MainMenu");
     }
 }
