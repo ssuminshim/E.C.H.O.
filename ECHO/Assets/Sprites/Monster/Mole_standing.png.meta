@@ -1,5 +1,5 @@
 fileFormatVersion: 2
-guid: d2d35e610df2c4bb6b892e518d6e009c
+guid: be82f2263682542549df9e068590379f
 TextureImporter:
   internalIDToNameTable: []
   externalObjects: {}
@@ -97,7 +97,7 @@ TextureImporter:
     serializedVersion: 2
     sprites:
     - serializedVersion: 2
-      name: Mouse_standing_0
+      name: Mole_standing_0
       rect:
         serializedVersion: 2
         x: 0
@@ -111,14 +111,14 @@ TextureImporter:
       physicsShape: []
       tessellationDetail: 0
       bones: []
-      spriteID: 89f31133f0ffb45fcb1a93c266bafcf9
-      internalID: 416671469
+      spriteID: 86b2ebeb25ec74083a3e980409cf02a8
+      internalID: -2084986323
       vertices: []
       indices: 
       edges: []
       weights: []
     - serializedVersion: 2
-      name: Mouse_standing_1
+      name: Mole_standing_1
       rect:
         serializedVersion: 2
         x: 640
@@ -132,14 +132,14 @@ TextureImporter:
       physicsShape: []
       tessellationDetail: 0
       bones: []
-      spriteID: f5f0193ba0ca9413781009bb2492f49e
-      internalID: 1023200216
+      spriteID: e85505c17fde24b44aec1950332c94b7
+      internalID: 493979750
       vertices: []
       indices: 
       edges: []
       weights: []
     - serializedVersion: 2
-      name: Mouse_standing_2
+      name: Mole_standing_2
       rect:
         serializedVersion: 2
         x: 1280
@@ -153,14 +153,14 @@ TextureImporter:
       physicsShape: []
       tessellationDetail: 0
       bones: []
-      spriteID: c75c397e608564df691e039b77c8e2b6
-      internalID: -2125403085
+      spriteID: b979b55ffe30147e7997f78f415b8a69
+      internalID: 1164323247
       vertices: []
       indices: 
       edges: []
       weights: []
     - serializedVersion: 2
-      name: Mouse_standing_3
+      name: Mole_standing_3
       rect:
         serializedVersion: 2
         x: 1920
@@ -174,14 +174,14 @@ TextureImporter:
       physicsShape: []
       tessellationDetail: 0
       bones: []
-      spriteID: 414562b3eb31e48ebb82ca10951a5b83
-      internalID: 1915514604
+      spriteID: 18c9afb7d330c489782a76306b09b33f
+      internalID: -209724739
       vertices: []
       indices: 
       edges: []
       weights: []
     - serializedVersion: 2
-      name: Mouse_standing_4
+      name: Mole_standing_4
       rect:
         serializedVersion: 2
         x: 2560
@@ -195,8 +195,8 @@ TextureImporter:
       physicsShape: []
       tessellationDetail: 0
       bones: []
-      spriteID: ce66e9ac962c742d4bcce37df923b927
-      internalID: 935308670
+      spriteID: 86d40db1937bf4ed69bf4a1409ba9a31
+      internalID: -2142401601
       vertices: []
       indices: 
       edges: []
@@ -212,11 +212,11 @@ TextureImporter:
     weights: []
     secondaryTextures: []
     nameFileIdTable:
-      Mouse_standing_0: 416671469
-      Mouse_standing_1: 1023200216
-      Mouse_standing_2: -2125403085
-      Mouse_standing_3: 1915514604
-      Mouse_standing_4: 935308670
+      Mole_standing_0: -2084986323
+      Mole_standing_1: 493979750
+      Mole_standing_2: 1164323247
+      Mole_standing_3: -209724739
+      Mole_standing_4: -2142401601
   mipmapLimitGroupName: 
   pSDRemoveMatte: 0
   userData: 

@@ -553,13 +553,11 @@ GameObject:
   - component: {fileID: 773362609}
   - component: {fileID: 773362614}
   - component: {fileID: 773362613}
-  - component: {fileID: 773362611}
   - component: {fileID: 773362610}
   - component: {fileID: 773362615}
-  - component: {fileID: 773362616}
   m_Layer: 9
   m_Name: MemoryMachine
-  m_TagString: Machine
+  m_TagString: Enemy
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
@@ -573,7 +571,7 @@ Transform:
   m_GameObject: {fileID: 773362608}
   serializedVersion: 2
   m_LocalRotation: {x: -0, y: -0, z: -0, w: 1}
-  m_LocalPosition: {x: 0.966, y: 2.166, z: 0.046259858}
+  m_LocalPosition: {x: 0.966, y: 2.123, z: 0.046259858}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children: []
@@ -614,33 +612,6 @@ CapsuleCollider2D:
   m_Offset: {x: 0.2, y: 0}
   m_Size: {x: 1, y: 1.4}
   m_Direction: 0
---- !u!50 &773362611
-Rigidbody2D:
-  serializedVersion: 4
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 773362608}
-  m_BodyType: 0
-  m_Simulated: 1
-  m_UseFullKinematicContacts: 0
-  m_UseAutoMass: 0
-  m_Mass: 1
-  m_LinearDrag: 0
-  m_AngularDrag: 0.05
-  m_GravityScale: 1
-  m_Material: {fileID: 0}
-  m_IncludeLayers:
-    serializedVersion: 2
-    m_Bits: 0
-  m_ExcludeLayers:
-    serializedVersion: 2
-    m_Bits: 0
-  m_Interpolate: 0
-  m_SleepingMode: 1
-  m_CollisionDetection: 0
-  m_Constraints: 4
 --- !u!95 &773362613
 Animator:
   serializedVersion: 5
@@ -727,19 +698,6 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   interactionUI: {fileID: 3520361919269119974, guid: 83d9652edf8102948abc7e6551b4db36, type: 3}
---- !u!114 &773362616
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 773362608}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 47f3ea9f9e3026b45b25f7fbc8e2146f, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: 
-  nextMove: 0
 --- !u!1 &1041752930
 GameObject:
   m_ObjectHideFlags: 0
