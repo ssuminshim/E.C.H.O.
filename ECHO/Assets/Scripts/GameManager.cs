@@ -8,7 +8,7 @@ using UnityEngine.SceneManagement;
 public class GameManager : MonoBehaviour
 {
     // --- Singleton Pattern ---
-    // 씬이 변경되어도 GameManager가 플레이어/스테이지를 관리할 수 있도록 싱글톤으로 만듭니다.
+    // 씬이 변경되어도 GameManager가 플레이어/스테이지를 관리할 수 있도록 싱글톤으로 만듦
     public static GameManager Instance;
 
     void Awake()
@@ -16,7 +16,7 @@ public class GameManager : MonoBehaviour
         if (Instance == null)
         {
             Instance = this;
-            // DontDestroyOnLoad(gameObject); // Core 씬 전체가 유지된다면 이 코드는 필요 없을 수 있습니다.
+            // DontDestroyOnLoad(gameObject); // Core 씬 전체가 유지된다면 이 코드는 필요 없을 수 있음
         }
         else
         {
@@ -25,7 +25,6 @@ public class GameManager : MonoBehaviour
     }
     // -------------------------
 
-    public int totalPoint;
     public int stagePoint;
     public int stageIndex;
     public int health;
@@ -38,7 +37,6 @@ public class GameManager : MonoBehaviour
     private Stage currentStage; 
 
     public Image[] UIhealth;
-    public TMP_Text UIPoint;
     public TMP_Text UIStage;
     public GameObject UIRestartBtn;
     public Camera mainCamera; // 줌인할 메인 카메라
@@ -130,8 +128,6 @@ public class GameManager : MonoBehaviour
 
     void Update()
     {
-        UIPoint.text = (totalPoint + stagePoint).ToString();
-
         // [자리 비움 감지 로직 추가]
         // 1. 이미 팝업이 떴다면 타이머를 실행하지 않음
         if (isInactive)
@@ -179,21 +175,21 @@ public class GameManager : MonoBehaviour
         {
             StartCoroutine(NextStageRoutine());
         }
-        else    // Game Clear
-        {
-            // Player Control Lock
-            Time.timeScale = 0;
+        // else    // Game Clear
+        // {
+        //     // Player Control Lock
+        //     Time.timeScale = 0;
 
-            // Result UI
-            Debug.Log("게임 클리어!");
+        //     // Result UI
+        //     Debug.Log("게임 클리어!");
 
-            // Restart Button UI
-            // Text -> TMP_Text
-            TMP_Text btnText = UIRestartBtn.GetComponentInChildren<TMP_Text>();
-            if (btnText != null)
-                btnText.text = "Clear!";
-            UIRestartBtn.SetActive(true);
-        }
+        //     // Restart Button UI
+        //     // Text -> TMP_Text
+        //     TMP_Text btnText = UIRestartBtn.GetComponentInChildren<TMP_Text>();
+        //     if (btnText != null)
+        //         btnText.text = "Clear!";
+        //     UIRestartBtn.SetActive(true);
+        // }
     }
 
     // 씬을 비동기(Async)로 로드/언로드하는 코루틴
@@ -207,8 +203,6 @@ public class GameManager : MonoBehaviour
 
         // 2. 인덱스 및 포인트 계산
         stageIndex++;
-        totalPoint += stagePoint;
-        stagePoint = 0;
 
         // 3. 다음 스테이지 씬을 Additive로 로드하고 완료될 때까지 대기
         AsyncOperation asyncLoad = SceneManager.LoadSceneAsync(stageSceneNames[stageIndex], LoadSceneMode.Additive);
@@ -408,7 +402,7 @@ public class GameManager : MonoBehaviour
             UIMissionText.text = ""; 
         }
     }
-    // [새로 추가] Item.cs가 이 함수를 호출
+    // ItemManager.cs가 이 함수를 호출
     public void OnItemCollected(string itemName, string message)
     {
         // 1. 팝업 코루틴 실행
@@ -423,7 +417,7 @@ public class GameManager : MonoBehaviour
         // (else if (itemName == "HealthPotion") { ... } 등등)
     }
 
-    // [새로 추가] 아이템 팝업을 2초간 띄웠다가 숨기는 코루틴
+    // 아이템 팝업을 2초간 띄웠다가 숨기는 코루틴
     IEnumerator ShowItemPopup(string message)
     {
         itemPopupText.text = message;
@@ -434,7 +428,7 @@ public class GameManager : MonoBehaviour
         itemPopupPanel.SetActive(false);
     }
 
-    // [새로 추가] 미션이 완료되었는지 확인하는 함수
+    // 미션이 완료되었는지 확인하는 함수
     void CheckMissionProgress()
     {
         // 현재 스테이지가 Stage 4 (인덱스 3)일 때만 확인
