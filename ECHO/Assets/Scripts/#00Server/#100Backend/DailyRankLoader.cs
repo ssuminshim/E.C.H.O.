@@ -71,8 +71,8 @@ public class DailyRankLoader : MonoBehaviour
 						for (int i = 0; i < rankerCount; ++i)
 						{
 							rankDataList[i].Rank	 = int.Parse(rankDataJson[i]["rank"].ToString());
-                            rankDataList[i].Date = int.Parse(rankDataJson[i]["score"].ToString());
-							rankDataList[i].Message = rankDataJson[i]["Message"].ToString();
+                            rankDataList[i].Date	 = int.Parse(rankDataJson[i]["score"].ToString());
+							rankDataList[i].Message	 = rankDataJson[i]["Message"].ToString();
 						}
 						// 만약 rankerCount가 20위까지 존재하지 않으면 나머지 랭킹에는 빈 데이터를 설정
 						for (int i = rankerCount; i < Constants.MAK_RANK_LIST; ++i)
@@ -116,8 +116,8 @@ public class DailyRankLoader : MonoBehaviour
 					// 받아온 데이터의 개수가 0이면 데이터가 없는 것
 					if ( rankDataJson.Count <= 0 )
 					{
-						// ["순위에 없음", "닉네임", 0]과 같이 출력
-						SetRankData(myRankData, 1000000000, 0, "-");
+						// ["순위에 없음", "date", "message]과 같이 출력
+						SetRankData(myRankData, 00, 0, "-");
 
 						Debug.LogWarning("데이터가 존재하지 않습니다.");
 					}
@@ -131,8 +131,8 @@ public class DailyRankLoader : MonoBehaviour
 				// 자신의 랭킹 정보 JSON 데이터 파싱에 실패했을 때
 				catch ( System.Exception e )
 				{
-					// ["순위에 없음", "닉네임", 0]과 같이 출력
-					SetRankData(myRankData, 1000000000, 0, "-");
+					// ["순위에 없음", "date", "message]과 같이 출력
+					SetRankData(myRankData, 00, 0, "-");
 
 					// try-catch 에러 출력
 					Debug.LogError(e);
@@ -143,8 +143,8 @@ public class DailyRankLoader : MonoBehaviour
 				// 자신의 랭킹 정보 데이터가 존재하지 않을 때
 				if ( callback.GetMessage().Contains("userRank") )
 				{
-					// ["순위에 없음", "닉네임", 0]과 같이 출력
-					SetRankData(myRankData, 1000000000, 0, "-");
+					// ["순위에 없음", "date", "message]과 같이 출력
+					SetRankData(myRankData, 00, 0, "-");
 				}
 			}
 		});
@@ -153,7 +153,7 @@ public class DailyRankLoader : MonoBehaviour
 	private void SetRankData(DailyRankData rankData, int rank, int date, string message)
 	{
 		rankData.Rank		= rank;
-		rankData.Date	= date;
-		rankData.Message		= message;
+		rankData.Date		= date;
+		rankData.Message	= message;
 	}
 }
