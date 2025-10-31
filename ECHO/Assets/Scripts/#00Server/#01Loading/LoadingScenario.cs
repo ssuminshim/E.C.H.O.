@@ -1,7 +1,7 @@
 using UnityEngine;
 using UnityEngine.SceneManagement;
 
-public class LoadingScenario : MonoBehaviour
+public class LoadingScenario : Login
 {
 	[SerializeField]
 	private Progress progress;

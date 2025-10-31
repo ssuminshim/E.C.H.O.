@@ -1,20 +1,23 @@
 using System.Collections;
 using UnityEngine;
 using UnityEngine.SceneManagement;
-using TMPro; // TMP_Text를 사용한다면 필요
+using TMPro;
+using BackEnd;
 
 public class PreviousLifeManager : MonoBehaviour
 {
-    // 인스펙터 창에서 "스페이스바를 눌러..." 텍스트 오브젝트를 연결
-    public GameObject pressSpaceText; 
-    
-    // (선택) 대화 UI 오브젝트
-    // public GameObject dialogueUI; 
+    [SerializeField]
+    private TextMeshProUGUI MessageFromPast;
+
+    public GameObject pressSpaceText;
 
     private bool canRetry = false; // 스페이스바를 누를 수 있는 상태인가?
 
     void Start()
     {
+        // 서버에서 로그인 요청
+        ResponseToLogin("test01", "1234");
+
         pressSpaceText.SetActive(false);
         canRetry = false;
         StartCoroutine(DialogueSequence());
@@ -22,17 +25,9 @@ public class PreviousLifeManager : MonoBehaviour
 
     IEnumerator DialogueSequence()
     {
-        // ------------------------------------------
-        // 여기에 씬의 대화/컷씬 연출 로직
-        // ------------------------------------------
-        
         Debug.Log("회상씬 대화가 재생 중입니다...");
-        yield return new WaitForSeconds(5.0f); // (임시) 5초간 대화가 재생된다고 가정
+        yield return new WaitForSeconds(3.0f); // n초간 대기
         Debug.Log("회상씬 대화가 끝났습니다.");
-
-        // ------------------------------------------
-        // 대화가 끝나면...
-        // ------------------------------------------
 
         // "재도전" 텍스트를 킴
         pressSpaceText.SetActive(true);
@@ -48,6 +43,91 @@ public class PreviousLifeManager : MonoBehaviour
             // Core 씬의 GameManager는 GameData.StageToReload 값을 읽어서
             // 우리가 죽었던 그 스테이지를 알아서 로드
             SceneManager.LoadScene("Core");
+
+            // Loading 씬을 로드해 로그인 초기화
+            // SceneManager.LoadScene("#02Loading");
         }
     }
+    private void ResponseToLogin(string ID, string PW)
+    {
+        // 서버에 로그인 요청
+        Backend.BMember.CustomLogin(ID, PW, callback =>
+        {
+            // 로그인 성공
+            if (callback.IsSuccess())
+            {
+                // 서버에서 이전 플레이어의 메시지 불러오기
+                GetMessage();
+            }
+            // 로그인 실패
+            else
+            {  
+                string message = string.Empty;
+
+                switch (int.Parse(callback.GetStatusCode()))
+                {
+                    case 401: // 존재하지 않는 아이디, 잘못된 비밀번호
+                        message = callback.GetMessage().Contains("customID") ? "존재하지 않는 아이디입니다." : "잘못된 비밀번호";
+                        break;
+                    case 403: // 유저 or 디바이스 차단
+                        message = callback.GetMessage().Contains("user") ? "차단당한 유저" : "차단당한 디바이스";
+                        break;
+                    case 410: // 탈퇴 진행중
+                        message = "탈퇴 진행중";
+                        break;
+                    default:
+                        message = callback.GetMessage();
+                        break;
+                }
+                MessageFromPast.text = message;
+            }
+
+        });
+
+    }
+
+    private void GetMessage()
+    {
+        // 서버에서 이전 플레이어의 메시지 불러오기
+        Backend.URank.User.GetRankList(Constants.DAILY_RANK_UUID, 1, callback =>
+        {
+            if (callback.IsSuccess())
+            {
+                // JSON 데이터 파싱 성공
+                try
+                {
+                    Debug.Log($"랭킹 조회에 성공했습니다. : {callback}");
+
+                    LitJson.JsonData rankDataJson = callback.FlattenRows();
+
+                    // 받아온 데이터의 개수가 0이면 데이터가 없는 것
+                    if (rankDataJson.Count <= 0)
+                    {
+                        Debug.LogWarning("데이터가 존재하지 않습니다.");
+                    }
+                    else
+                    {
+                        int rankerCount = rankDataJson.Count;
+                        // 랭킹 정보를 불러와 출력할 수 있도록 설정
+                        string message = rankDataJson[0]["Message"].ToString();
+                        MessageFromPast.text = $"\"{message}\"";
+                    }
+                }
+                // JSON 데이터 파싱 실패
+                catch (System.Exception e)
+                {
+                    // try-catch 에러 출력
+                    Debug.LogError(e);
+                }
+            }
+            else
+            {
+                // 에러 텍스트 표시
+                MessageFromPast.text = "Error: Rank";
+
+                Debug.LogError($"랭킹 조회 중 오류가 발생했습니다. : {callback}");
+            }
+        });
+    }
 }
+
