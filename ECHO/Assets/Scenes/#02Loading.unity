@@ -278,6 +278,12 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: a7dc38d427417456b95532ab93febd5f, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+  textMessage: {fileID: 0}
+  imageID: {fileID: 0}
+  inputFieldID: {fileID: 0}
+  imagePW: {fileID: 0}
+  inputFieldPW: {fileID: 0}
+  btnLogin: {fileID: 0}
   progress: {fileID: 1391664760}
 --- !u!1 &1391664758
 GameObject:
@@ -640,8 +646,8 @@ MonoBehaviour:
       m_Calls: []
   m_text: "\uB85C\uB529 \uC911..."
   m_isRightToLeft: 0
-  m_fontAsset: {fileID: 11400000, guid: 6ef3d995eb56f4203b6e8fa5147acdb7, type: 2}
-  m_sharedMaterial: {fileID: 3734931584766982837, guid: 6ef3d995eb56f4203b6e8fa5147acdb7, type: 2}
+  m_fontAsset: {fileID: 11400000, guid: b6f4789c56b8442788a1726534b28ad9, type: 2}
+  m_sharedMaterial: {fileID: -3661467857324385816, guid: b6f4789c56b8442788a1726534b28ad9, type: 2}
   m_fontSharedMaterials: []
   m_fontMaterial: {fileID: 0}
   m_fontMaterials: []

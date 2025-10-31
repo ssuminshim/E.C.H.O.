@@ -790,8 +790,8 @@ MonoBehaviour:
       m_Calls: []
   m_text: "\uBA54\uC778\uBA54\uB274\uB85C \uB3CC\uC544\uAC00\uAE30"
   m_isRightToLeft: 0
-  m_fontAsset: {fileID: 11400000, guid: 6ef3d995eb56f4203b6e8fa5147acdb7, type: 2}
-  m_sharedMaterial: {fileID: 3734931584766982837, guid: 6ef3d995eb56f4203b6e8fa5147acdb7, type: 2}
+  m_fontAsset: {fileID: 11400000, guid: b6f4789c56b8442788a1726534b28ad9, type: 2}
+  m_sharedMaterial: {fileID: -3661467857324385816, guid: b6f4789c56b8442788a1726534b28ad9, type: 2}
   m_fontSharedMaterials: []
   m_fontMaterial: {fileID: 0}
   m_fontMaterials: []
