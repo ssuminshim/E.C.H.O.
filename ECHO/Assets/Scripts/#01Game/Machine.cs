@@ -52,13 +52,13 @@ public class Machine : MonoBehaviour
 
     void InteractWithMachine()
     {
-        // GameManager의 최종 패널 활성화 함수 호출
+        // 1. GameManager의 최종 패널 활성화 함수 호출
         GameManager.Instance.ActivateCompletionPanel();
         
-        // 상호작용이 완료되었으므로 이 스크립트 비활성화
+        // 2. 상호작용이 완료되었으므로 이 스크립트 비활성화
         this.enabled = false; 
         
-        // UI도 비활성화
+        // 3. UI도 비활성화
         if (interactionUI != null)
             interactionUI.SetActive(false);
     }

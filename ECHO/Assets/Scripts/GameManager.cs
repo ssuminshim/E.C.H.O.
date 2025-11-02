@@ -18,23 +18,24 @@ public class GameManager : MonoBehaviour
             Instance = this;
             // DontDestroyOnLoad(gameObject); // Core 씬 전체가 유지된다면 이 코드는 필요 없을 수 있음
         }
-        else
+        // GameManager에 붙어있는 AudioSource 컴포넌트를 찾음
+        bgmPlayer = GetComponent<AudioSource>();
+        if (bgmPlayer != null)
         {
-            Destroy(gameObject);
+            bgmPlayer.loop = true; // 음악은 항상 반복하도록 설정
         }
     }
-    // -------------------------
 
     public int stagePoint;
     public int stageIndex;
     public int health;
     public PlayerMove player;
-    
+
     // GameObject 배열 대신 씬 이름 리스트로 변경
     public List<string> stageSceneNames = new List<string>();
-    
+
     // 현재 스테이지의 정보를 저장할 변수
-    private Stage currentStage; 
+    private Stage currentStage;
 
     public Image[] UIhealth;
     public TMP_Text UIStage;
@@ -54,48 +55,86 @@ public class GameManager : MonoBehaviour
     private float inactivityTimer = 0f; // 내부 타이머 변수
     private bool isInactive = false;    // 팝업이 떴는지 확인하는 변수
 
-    // [아이템 획득 팝업 UI 변수 추가]
+    // [아이템 획득 팝업 UI 변수]
     public GameObject itemPopupPanel; // 획득! 창 (Panel)
     public TMP_Text itemPopupText;  // 획득! 창의 텍스트
 
-    // [미션 UI 변수 추가]
+    // [미션 UI 변수]
     public TMP_Text UIMissionText;  // 오른쪽 상단 미션 텍스트
 
-    // [미션 진행도 변수 추가]
+    // [음악 관리 변수]
+    private AudioSource bgmPlayer; // 음악을 재생할 Audio Source
+    public AudioClip musicStage1_2; // Stage 1, 2에서 쓸 음악
+    public AudioClip musicStage3;   // Stage 3에서 쓸 음악
+    public AudioClip musicStage4;   // Stage 4에서 쓸 음악
+    public AudioClip musicStage5;   // Stage 5에서 쓸 음악
+
+    // [미션 진행도 변수]
+    [Header("Mission Settings")] // (인스펙터에서 보기 좋게 제목 추가)
+    public string stage4LockedMessage = "우선 기억보관기계를 가동시키자.";
     private int cardKeysCollected = 0;
     private int cardKeysNeeded = 3; // Stage 4에서 필요한 카드키 수
-    private string stage4Mission_InProgress = "카드키를 획득하여 기억보관장치를 가동시키자.";
-    private string stage4Mission_Complete = "카드키를 모두 얻었다. 이제 기억보관장치를 가동시켜보자.";
+    public string stage4Mission_InProgress = "카드키를 획득하여 기억보관장치를 가동시키자.";
+    public string stage4Mission_Complete = "카드키를 모두 얻었다. 이제 기억보관장치를 가동시켜보자.";
 
     // 머신 상호작용 완료 시 활성화할 패널
     public GameObject machineCompletionPanel;
 
+    // [크레딧 연출용 변수]
+    [Header("Credits Settings")]
+    public float creditPanDuration = 3.0f; // 카메라가 패닝되는 데 걸리는 시간
+
     void Start()
     {
-        // 자리 비움 타이머 및 팝업 초기화
+        isDead = false; // 플레이어 사망 상태 리셋
+        if (player != null)
+            player.enabled = true; // PlayerMove 스크립트 다시 활성화
+        if (mainCamera != null && player != null)
+        {
+            mainCamera.transform.SetParent(player.transform, true);
+            mainCamera.transform.localPosition = new Vector3(0, 0, -10); // 원래 카메라 오프셋
+        }
+
+        // --- 모든 UI 패널 초기화 ---
         if (inactivityPopup != null)
             inactivityPopup.SetActive(false);
         isInactive = false;
         inactivityTimer = 0f;
-        Time.timeScale = 1f; // (혹시 모르니 시간 흐름 복구)
+        Time.timeScale = 1f; 
 
-        // [추가] UI 초기화
         if (itemPopupPanel != null)
-            itemPopupPanel.SetActive(false); // 아이템 팝업 숨기기
+            itemPopupPanel.SetActive(false); 
         if (UIMissionText != null)
-            UIMissionText.text = ""; // 미션 텍스트 비우기
+            UIMissionText.text = ""; 
 
-        // [추가] 머신 완료 패널 숨기기
         if (machineCompletionPanel != null)
             machineCompletionPanel.SetActive(false);
+        // --- UI 초기화 끝 ---
 
-        // "GameData.cs"에 저장된 스테이지 인덱스를 가져옴
-        stageIndex = GameData.StageToReload;
 
-        // 게임 시작 시 첫 스테이지 UI 텍스트 설정
+        // [ ★★★ 핵심 씬 로드 로직 ★★★ ]
+        
+        // 1. "GameData.cs"에 저장된 스테이지 인덱스를 가져옴
+        if (GameData.StageToReload < 0) // 기본값(-1)이거나 잘못된 값이면
+        {
+            // MainMenu에서 "새 게임"을 눌렀다면 0이 들어와야 하지만,
+            // 안전장치로 -1이면 0번 스테이지(Stage 1)로 강제
+            stageIndex = 0;
+        }
+        else
+        {
+            // 0 (MainMenu에서 옴) 또는 3 (Ending에서 옴) 등 유효한 값이 옴
+            stageIndex = GameData.StageToReload;
+        }
+
+        // 2. [중요!] 값을 한 번 사용했으니, 다음 "새 게임"을 위해 기본값(-1)으로 리셋
+        // (MainMenu에서 "새 게임"을 누르면 다시 0으로 덮어쓸 것입니다.)
+        GameData.StageToReload = -1; 
+
+        // 3. 게임 시작 시 첫 스테이지 UI 텍스트 설정
         UIStage.text = "STAGE " + (stageIndex + 1);
 
-        // 저장된 스테이지를 로드하는 코루틴 시작
+        // 4. 저장된 스테이지를 로드하는 코루틴 시작
         StartCoroutine(LoadInitialStage());
     }
 
@@ -103,7 +142,7 @@ public class GameManager : MonoBehaviour
     {
         // 1. stageIndex에 맞는 씬 이름을 가져옴
         string sceneToLoad = stageSceneNames[stageIndex];
-        
+
         // 2. 해당 씬을 추가로 로드
         AsyncOperation asyncLoad = SceneManager.LoadSceneAsync(sceneToLoad, LoadSceneMode.Additive);
         while (!asyncLoad.isDone)
@@ -124,7 +163,7 @@ public class GameManager : MonoBehaviour
             waitTimer += Time.deltaTime;
             yield return null;
         }
-        
+
         // 4. Stage.cs 등록 완료! 플레이어를 스폰 지점으로 이동
         Debug.Log(sceneToLoad + " 로드 완료 및 Stage 등록 완료.");
         PlayerReposition();
@@ -143,8 +182,8 @@ public class GameManager : MonoBehaviour
         }
 
         // 2. 키보드, 마우스 등 '아무' 입력이라도 감지되면
-        if (Input.anyKeyDown || 
-            Input.GetAxisRaw("Horizontal") != 0 || 
+        if (Input.anyKeyDown ||
+            Input.GetAxisRaw("Horizontal") != 0 ||
             Input.GetAxisRaw("Vertical") != 0 ||
             Input.GetAxis("Mouse X") != 0 ||
             Input.GetAxis("Mouse Y") != 0)
@@ -177,26 +216,25 @@ public class GameManager : MonoBehaviour
     // NextStage 로직을 코루틴으로 분리
     public void NextStage()
     {
+        // 1. 현재 스테이지가 Stage 4 (인덱스 3)인지 확인
+        if (stageIndex == 3)
+        {
+            // 2. 스테이지 4가 맞다면, 카드키를 다 모았는지 확인
+            if (cardKeysCollected < cardKeysNeeded)
+            {
+                // 3. (실패) 키를 다 못 모았다면, 팝업을 띄우고 함수를 즉시 종료
+                // (ShowItemPopup 코루틴은 이미 만들어 둔 것을 재사용)
+                StartCoroutine(ShowItemPopup(stage4LockedMessage));
+                return; // 다음 스테이지로 넘어가지 않고 여기서 멈춤
+            }
+            // 4. (성공) 키를 다 모았다면, return을 만나지 않고 아래의 기존 로직을 계속 실행
+        }
+
         // Change Stage
         if (stageIndex < stageSceneNames.Count - 1)
         {
             StartCoroutine(NextStageRoutine());
         }
-        // else    // Game Clear
-        // {
-        //     // Player Control Lock
-        //     Time.timeScale = 0;
-
-        //     // Result UI
-        //     Debug.Log("게임 클리어!");
-
-        //     // Restart Button UI
-        //     // Text -> TMP_Text
-        //     TMP_Text btnText = UIRestartBtn.GetComponentInChildren<TMP_Text>();
-        //     if (btnText != null)
-        //         btnText.text = "Clear!";
-        //     UIRestartBtn.SetActive(true);
-        // }
     }
 
     // 씬을 비동기(Async)로 로드/언로드하는 코루틴
@@ -218,12 +256,15 @@ public class GameManager : MonoBehaviour
             yield return null; // 씬 로드가 끝날 때까지 1프레임 대기
         }
 
-        // 4. 새 씬이 로드 완료됨 (이때쯤 새 씬의 Stage.cs가 Start/Awake에서 RegisterStage를 호출했을 것임)
+        // 4. (새 씬의 Stage.cs가 로드됨)
 
         // 5. UI 텍스트 업데이트
         UIStage.text = "STAGE " + (stageIndex + 1);
 
-        // 6. 플레이어 재배치
+        // 6. 새 스테이지에 맞는 미션을 설정
+        SetupMissionForStage(stageIndex);
+
+        // 7. 플레이어 재배치
         PlayerReposition();
     }
 
@@ -292,7 +333,7 @@ public class GameManager : MonoBehaviour
             player.transform.position = new Vector3(0, 0, -1);
             Debug.LogWarning("Current Stage 또는 Spawn Point가 등록되지 않아 기본 위치로 스폰합니다.");
         }
-        
+
         player.VelocityZero();
     }
 
@@ -393,22 +434,53 @@ public class GameManager : MonoBehaviour
         // 4. MainMenu 씬을 로드
         SceneManager.LoadScene("MainMenu");
     }
-    
+
     void SetupMissionForStage(int index)
     {
-        // Stage 4의 인덱스가 3이라고 가정 (0,1,2,3)
-        if (index == 3) 
+        AudioClip clipToPlay = null;
+
+        // Stage 1 (index 0) 또는 Stage 2 (index 1)
+        if (index == 0 || index == 1)
         {
-            cardKeysCollected = 0; // 스테이지 시작 시 카드키 초기화
-            cardKeysNeeded = 3;    // 필요한 카드키 수 설정
-            UIMissionText.text = stage4Mission_InProgress; // 미션 텍스트 설정
+            clipToPlay = musicStage1_2;
+            UIMissionText.text = ""; // 1, 2 스테이지 미션 없음
+        }
+        // Stage 3 (index 2)
+        else if (index == 2)
+        {
+            clipToPlay = musicStage3;
+            UIMissionText.text = ""; // Stage 3 미션 없음 (있다면 여기에)
+        }
+        // Stage 4 (index 3)
+        else if (index == 3)
+        {
+            clipToPlay = musicStage4;
+
+            // Stage 4 미션 설정
+            cardKeysCollected = 0; 
+            cardKeysNeeded = 3;   
+            UIMissionText.text = stage4Mission_InProgress;
+        }
+        // Stage 5 (index 4)
+        else if (index == 4)
+        {
+            clipToPlay = musicStage5;
+            UIMissionText.text = ""; // Stage 5 미션 (있다면 여기에)
         }
         else
         {
             // 다른 스테이지는 미션 없음
-            UIMissionText.text = ""; 
+            UIMissionText.text = "";
+        }
+
+        // [음악 재생 로직]
+        if (clipToPlay != null && bgmPlayer.clip != clipToPlay)
+        {
+            bgmPlayer.clip = clipToPlay; // 음악 교체
+            bgmPlayer.Play(); // 재생
         }
     }
+
     // ItemManager.cs가 이 함수를 호출
     public void OnItemCollected(string itemName, string message)
     {
@@ -456,8 +528,14 @@ public class GameManager : MonoBehaviour
     // 🌟 Machine.cs가 머신 상호작용 가능 여부를 물어볼 때 사용
     public bool IsCardKeyMissionComplete()
     {
-        // Stage 4 (인덱스 3)이고, 필요한 카드키를 모두 모았을 때만 True 반환
-        return stageIndex == 3 && cardKeysCollected >= cardKeysNeeded;
+        // 현재 스테이지가 Stage 4(index 3)이고, 키를 다 모았는지 확인
+        if (stageIndex == 3 && cardKeysCollected >= cardKeysNeeded)
+        {
+            return true;
+        }
+        
+        // 그 외의 경우는 모두 false
+        return false;
     }
 
     // 🌟 Machine.cs가 최종 상호작용을 요청할 때 호출
@@ -472,5 +550,60 @@ public class GameManager : MonoBehaviour
         {
             Debug.LogError("Machine Completion Panel이 GameManager에 연결되어 있지 않습니다!");
         }
+    }
+
+    // [ ★★★ 이 두 함수(StartCreditPan, PanToCreditsRoutine)를 통째로 추가 ★★★ ]
+
+    /// <summary>
+    /// CreditTrigger가 호출할 크레딧 연출 시작 함수
+    /// </summary>
+    public void StartCreditPan(Transform target)
+    {
+        StartCoroutine(PanToCreditsRoutine(target));
+    }
+
+    IEnumerator PanToCreditsRoutine(Transform target)
+    {
+        // 1. 플레이어 조작을 막음
+        isDead = true;
+        player.enabled = false; // PlayerMove.cs 스크립트 자체를 비활성화
+
+        // 2. 카메라가 플레이어를 따라다니는 것을 멈춤
+        // (true를 전달하여 월드 좌표를 유지한 채 부모-자식 관계만 해제)
+        mainCamera.transform.SetParent(null, true);
+
+        // 3. 카메라를 'CreditCameraTarget'으로 패닝(이동)
+        float timer = 0f;
+        Vector3 startCamPos = mainCamera.transform.position;
+        Vector3 targetCamPos = new Vector3(
+            target.position.x,
+            target.position.y,
+            startCamPos.z // Z축은 그대로 유지
+        );
+
+        while (timer < creditPanDuration)
+        {
+            float t = timer / creditPanDuration;
+            mainCamera.transform.position = Vector3.Lerp(startCamPos, targetCamPos, t * t);
+            timer += Time.deltaTime;
+            yield return null;
+        }
+
+        // 4. 패닝 완료 후 잠시 대기
+        yield return new WaitForSeconds(1.0f);
+
+        // 5. "Credit" 씬을 로드
+        SceneManager.LoadScene("Credit");
+    }
+    
+    // LoadStageAdditive 코루틴
+    IEnumerator LoadStageAdditive(string sceneName)
+    {
+        AsyncOperation asyncLoad = SceneManager.LoadSceneAsync(sceneName, LoadSceneMode.Additive);
+        while (!asyncLoad.isDone)
+        {
+            yield return null;
+        }
+        PlayerReposition(); // 씬 로드 후 플레이어 재배치
     }
 }
