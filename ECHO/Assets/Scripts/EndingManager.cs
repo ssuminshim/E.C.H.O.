@@ -4,14 +4,10 @@ using UnityEngine.SceneManagement;
 // 스크립트의 클래스 이름은 실제 파일 이름과 일치해야 합니다.
 public class EndingScenario : MonoBehaviour 
 {
-    // [ ★★★ 수정 1 ★★★ ]
-    // Start() 함수에 씬을 로드하는 코루틴(WaitForSeconds 등)이 있다면,
-    // 그 Start() 함수를 통째로 삭제하세요!
     // (Start() 함수는 비워둡니다)
     void Start()
     {
-        // 3초 뒤 씬 전환하는 코드가 있다면 모두 삭제
-        // (예: StartCoroutine(LoadSceneAfterTime(3.0f)); <-- 삭제!)
+        
     }
 
     // Update 함수만 남겨두고, 스페이스바를 누를 때만 작동하게 합니다.

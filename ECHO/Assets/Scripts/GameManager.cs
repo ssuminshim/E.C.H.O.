@@ -164,6 +164,12 @@ public class GameManager : MonoBehaviour
             yield return null;
         }
 
+        // 새 씬의 카메라 경계를 찾으라고 카메라에게 알림
+        if (mainCamera != null)
+        {
+            mainCamera.GetComponent<CameraClamp>()?.FindNewBoundary();
+        }
+
         // 4. Stage.cs 등록 완료! 플레이어를 스폰 지점으로 이동
         Debug.Log(sceneToLoad + " 로드 완료 및 Stage 등록 완료.");
         PlayerReposition();
@@ -261,10 +267,16 @@ public class GameManager : MonoBehaviour
         // 5. UI 텍스트 업데이트
         UIStage.text = "STAGE " + (stageIndex + 1);
 
-        // 6. 새 스테이지에 맞는 미션을 설정
+        // 6. 새 씬의 카메라 경계를 찾으라고 카메라에게 알림
+        if (mainCamera != null)
+        {
+            mainCamera.GetComponent<CameraClamp>()?.FindNewBoundary();
+        }
+
+        // 7. 새 스테이지에 맞는 미션을 설정
         SetupMissionForStage(stageIndex);
 
-        // 7. 플레이어 재배치
+        // 8. 플레이어 재배치
         PlayerReposition();
     }
 

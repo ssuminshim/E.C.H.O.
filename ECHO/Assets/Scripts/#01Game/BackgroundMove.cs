@@ -8,7 +8,7 @@ public class ParallaxBackground : MonoBehaviour
     public Transform player;          // 플레이어 Transform
     [Range(0f, 1f)]
 
-    public float parallaxFactor = 0.3f; // 0~1 사이 값. 낮을수록 더 멀리 있는 느낌
+    public float parallaxFactor = 0.05f; // 0~1 사이 값. 낮을수록 더 멀리 있는 느낌
     private Vector3 startPosition;
 
 

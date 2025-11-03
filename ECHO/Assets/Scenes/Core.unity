@@ -1124,7 +1124,7 @@ RectTransform:
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
   m_AnchorMin: {x: 1, y: 1}
   m_AnchorMax: {x: 1, y: 1}
-  m_AnchoredPosition: {x: 0, y: 0}
+  m_AnchoredPosition: {x: 0, y: -39}
   m_SizeDelta: {x: 700, y: 150}
   m_Pivot: {x: 1, y: 1}
 --- !u!114 &1156562503
@@ -2246,7 +2246,6 @@ Transform:
   m_LocalScale: {x: 1.171875, y: 1.171875, z: 0.5}
   m_ConstrainProportionsScale: 0
   m_Children:
-  - {fileID: 7828445517128065541}
   - {fileID: 963584618}
   m_Father: {fileID: 0}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
@@ -2269,6 +2268,7 @@ GameObject:
   - component: {fileID: 7828445517128065541}
   - component: {fileID: 4077181903093507244}
   - component: {fileID: 5347273515983661547}
+  - component: {fileID: 7828445517128065542}
   m_Layer: 0
   m_Name: Main Camera
   m_TagString: MainCamera
@@ -2430,6 +2430,7 @@ MonoBehaviour:
   stage4Mission_Complete: "\uCE74\uB4DC\uD0A4\uB97C \uBAA8\uB450 \uC5BB\uC5C8\uB2E4.
     \uC774\uC81C \uAE30\uC5B5\uBCF4\uAD00\uC7A5\uCE58\uB97C \uAC00\uB3D9\uC2DC\uCF1C\uBCF4\uC790."
   machineCompletionPanel: {fileID: 466208108}
+  creditPanDuration: 3
 --- !u!4 &7828445517128065541
 Transform:
   m_ObjectHideFlags: 0
@@ -2439,12 +2440,27 @@ Transform:
   m_GameObject: {fileID: 6306626517459253934}
   serializedVersion: 2
   m_LocalRotation: {x: -0, y: -0, z: -0, w: 1}
-  m_LocalPosition: {x: 0, y: 0, z: -10}
+  m_LocalPosition: {x: 0, y: 0, z: -5}
   m_LocalScale: {x: 0, y: 0, z: 0}
   m_ConstrainProportionsScale: 0
   m_Children: []
-  m_Father: {fileID: 6122825970813549524}
+  m_Father: {fileID: 0}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!114 &7828445517128065542
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 6306626517459253934}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 3b669c36d81b87c419251ecd54cff733, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  target: {fileID: 6122825970813549524}
+  offset: {x: 0, y: 0, z: -10}
+  moveSpeed: 8
 --- !u!224 &7964166722533901730
 RectTransform:
   m_ObjectHideFlags: 0
@@ -2788,6 +2804,7 @@ SceneRoots:
   m_ObjectHideFlags: 0
   m_Roots:
   - {fileID: 9080563777484175271}
+  - {fileID: 7828445517128065541}
   - {fileID: 6122825970813549524}
   - {fileID: 221403025601230854}
   - {fileID: 4603184737185679729}
