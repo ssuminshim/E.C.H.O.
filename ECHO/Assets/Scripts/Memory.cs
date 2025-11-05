@@ -65,7 +65,7 @@ public class Memory : MonoBehaviour
             // 마지막 대화가 끝나면 씬 전환
             else
             {
-                SceneManager.LoadScene("Ending");
+                SceneManager.LoadScene("Ending"); // 수민아 여기 씬 이름 "Ending"에서 "Core"로 바꾸면 돼!
                 dialogue_count = 0; // 필요 시 초기화
             }
 
