@@ -359,8 +359,8 @@ MonoBehaviour:
   m_OnCullStateChanged:
     m_PersistentCalls:
       m_Calls: []
-  m_text: "A / D: \uC88C\uC6B0 \uC774\uB3D9, Spacebar: \uC810\uD504, W / D: \uC0AC\uB2E4\uB9AC
-    \uD0C0\uAE30"
+  m_text: "\uC88C/\uC6B0 \uBC29\uD5A5\uD0A4: \uC88C/\uC6B0 \uC774\uB3D9, \uC2A4\uD398\uC774\uC2A4\uBC14:
+    \uC810\uD504, \uC0C1/\uD558 \uBC29\uD5A5\uD0A4: \uC0AC\uB2E4\uB9AC \uD0C0\uAE30"
   m_isRightToLeft: 0
   m_fontAsset: {fileID: 11400000, guid: b6f4789c56b8442788a1726534b28ad9, type: 2}
   m_sharedMaterial: {fileID: -3661467857324385816, guid: b6f4789c56b8442788a1726534b28ad9, type: 2}
@@ -423,7 +423,7 @@ MonoBehaviour:
   m_VertexBufferAutoSizeReduction: 0
   m_useMaxVisibleDescender: 1
   m_pageToDisplay: 1
-  m_margin: {x: 0, y: 0, z: 0, w: 0}
+  m_margin: {x: 0, y: 0, z: -54.706177, w: 0}
   m_isUsingLegacyAnimationComponent: 0
   m_isVolumetricText: 0
   m_hasFontAssetChanged: 0

@@ -16,8 +16,19 @@ public class GameManager : MonoBehaviour
         if (Instance == null)
         {
             Instance = this;
-            // DontDestroyOnLoad(gameObject); // Core 씬 전체가 유지된다면 이 코드는 필요 없을 수 있음
+            // 씬이 바뀌어도 GameManager(Player, Camera, UI 포함)가 파괴되지 않게 함
+            DontDestroyOnLoad(gameObject); 
         }
+        else
+        {
+            // 만약 MainMenu로 돌아왔을 때 이미 GameManager가 존재한다면
+            // 새로 생긴 GameManager(나 자신)를 파괴
+            Destroy(gameObject);
+            return; // Awake()의 나머지 코드를 실행하지 않음
+        }
+        // [ ★★★ 수정 끝 ★★★ ]
+
+
         // GameManager에 붙어있는 AudioSource 컴포넌트를 찾음
         bgmPlayer = GetComponent<AudioSource>();
         if (bgmPlayer != null)
@@ -76,6 +87,7 @@ public class GameManager : MonoBehaviour
     private int cardKeysNeeded = 3; // Stage 4에서 필요한 카드키 수
     public string stage4Mission_InProgress = "카드키를 획득하여 기억보관장치를 가동시키자.";
     public string stage4Mission_Complete = "카드키를 모두 얻었다. 이제 기억보관장치를 가동시켜보자.";
+    public string stage4Mission_Exit = "문 밖으로 나가보자."; // Memory 씬 이후 미션
 
     // 머신 상호작용 완료 시 활성화할 패널
     public GameObject machineCompletionPanel;
@@ -86,16 +98,20 @@ public class GameManager : MonoBehaviour
 
     void Start()
     {
+        // [ ★★★ 디버깅 코드 1 ★★★ ]
+        // 씬이 시작될 때 GameData가 *현재* 무슨 값을 가졌는지 확인
+        Debug.LogWarning("GameManager.Start()가 막 시작되었습니다. GameData.StageToReload의 현재 값: " + GameData.StageToReload);
+
         isDead = false; // 플레이어 사망 상태 리셋
         if (player != null)
             player.enabled = true; // PlayerMove 스크립트 다시 활성화
         if (mainCamera != null && player != null)
         {
             mainCamera.transform.SetParent(player.transform, true);
-            mainCamera.transform.localPosition = new Vector3(0, 0, -10); // 원래 카메라 오프셋
+            mainCamera.transform.localPosition = new Vector3(0, 0, -10); // (또는 원래 카메라 오프셋 값)
         }
 
-        // --- 모든 UI 패널 초기화 ---
+        // --- (모든 UI 패널 초기화 ...) ---
         if (inactivityPopup != null)
             inactivityPopup.SetActive(false);
         isInactive = false;
@@ -105,36 +121,37 @@ public class GameManager : MonoBehaviour
         if (itemPopupPanel != null)
             itemPopupPanel.SetActive(false); 
         if (UIMissionText != null)
-            UIMissionText.text = ""; 
+            UIMissionText.text = "";
 
         if (machineCompletionPanel != null)
             machineCompletionPanel.SetActive(false);
         // --- UI 초기화 끝 ---
 
-
-        // [ ★★★ 핵심 씬 로드 로직 ★★★ ]
+        
+        // [ ★★★ 핵심 씬 로드 로직 (디버깅 코드 추가됨) ★★★ ]
         
         // 1. "GameData.cs"에 저장된 스테이지 인덱스를 가져옴
         if (GameData.StageToReload < 0) // 기본값(-1)이거나 잘못된 값이면
         {
-            // MainMenu에서 "새 게임"을 눌렀다면 0이 들어와야 하지만,
-            // 안전장치로 -1이면 0번 스테이지(Stage 1)로 강제
             stageIndex = 0;
+            // [ ★★★ 디버깅 코드 2 ★★★ ]
+            Debug.LogError("GameData.StageToReload 값이 0보다 작아서, Stage 1 (index 0)을 로드합니다.");
         }
         else
         {
-            // 0 (MainMenu에서 옴) 또는 3 (Ending에서 옴) 등 유효한 값이 옴
             stageIndex = GameData.StageToReload;
+            // [ ★★★ 디버깅 코드 3 ★★★ ]
+            Debug.LogWarning("GameData.StageToReload 값 (" + stageIndex + ")을 읽었습니다. 이 스테이지를 로드합니다.");
         }
 
         // 2. [중요!] 값을 한 번 사용했으니, 다음 "새 게임"을 위해 기본값(-1)으로 리셋
-        // (MainMenu에서 "새 게임"을 누르면 다시 0으로 덮어쓸 것입니다.)
         GameData.StageToReload = -1; 
+        Debug.Log("GameData.StageToReload 값을 -1로 리셋했습니다.");
 
         // 3. 게임 시작 시 첫 스테이지 UI 텍스트 설정
         UIStage.text = "STAGE " + (stageIndex + 1);
 
-        // 4. 저장된 스테이지를 로드하는 코루틴 시작
+        // 4. 저장된 스테이지(Stage 1 또는 Stage 4)를 로드
         StartCoroutine(LoadInitialStage());
     }
 
@@ -222,19 +239,24 @@ public class GameManager : MonoBehaviour
     // NextStage 로직을 코루틴으로 분리
     public void NextStage()
     {
-        // 1. 현재 스테이지가 Stage 4 (인덱스 3)인지 확인
-        if (stageIndex == 3)
+        // 1. 현재 스테이지가 Stage 4 (인덱스 3)이고,
+        // 2. "아직" Memory 씬을 완료하지 않았다면 (처음 방문이라면)
+        if (stageIndex == 3 && GameData.HasCompletedMemory == false) 
         {
-            // 2. 스테이지 4가 맞다면, 카드키를 다 모았는지 확인
+            // 3. 카드키를 다 모았는지 확인
             if (cardKeysCollected < cardKeysNeeded)
             {
-                // 3. (실패) 키를 다 못 모았다면, 팝업을 띄우고 함수를 즉시 종료
-                // (ShowItemPopup 코루틴은 이미 만들어 둔 것을 재사용)
+                // 4. (실패) 키를 다 못 모았다면, 팝업 띄우고 종료
                 StartCoroutine(ShowItemPopup(stage4LockedMessage));
-                return; // 다음 스테이지로 넘어가지 않고 여기서 멈춤
+                return; 
             }
-            // 4. (성공) 키를 다 모았다면, return을 만나지 않고 아래의 기존 로직을 계속 실행
         }
+        
+        // 5. (성공)
+        //    - Stage 4가 아니거나,
+        //    - Stage 4이지만 Memory 씬을 이미 완료했거나,
+        //    - Stage 4이고 키를 다 모았다면
+        //    (기존의 "다음 스테이지" 로직을 실행)
 
         // Change Stage
         if (stageIndex < stageSceneNames.Count - 1)
@@ -461,27 +483,40 @@ public class GameManager : MonoBehaviour
         else if (index == 2)
         {
             clipToPlay = musicStage3;
-            UIMissionText.text = ""; // Stage 3 미션 없음 (있다면 여기에)
+            UIMissionText.text = ""; // Stage 3 미션 없음
         }
         // Stage 4 (index 3)
         else if (index == 3)
         {
             clipToPlay = musicStage4;
-
-            // Stage 4 미션 설정
-            cardKeysCollected = 0; 
-            cardKeysNeeded = 3;   
-            UIMissionText.text = stage4Mission_InProgress;
+            
+            // 1. (복귀 후) Memory 씬을 봤다면, "나가자" 미션
+            if (GameData.HasCompletedMemory)
+            {
+                UIMissionText.text = stage4Mission_Exit;
+            }
+            // 2. (처음 방문) 키를 다 모았다면, "기계 가동" 미션
+            else if (cardKeysCollected >= cardKeysNeeded)
+            {
+                UIMissionText.text = stage4Mission_Complete;
+            }
+            // 3. (처음 방문) 키를 모으는 중, "키 획득" 미션
+            else
+            {
+                // 카드키 초기화는 여기에 있어야 함
+                cardKeysCollected = 0; 
+                cardKeysNeeded = 3;   
+                UIMissionText.text = stage4Mission_InProgress;
+            }
         }
         // Stage 5 (index 4)
         else if (index == 4)
         {
             clipToPlay = musicStage5;
-            UIMissionText.text = ""; // Stage 5 미션 (있다면 여기에)
+            UIMissionText.text = ""; // Stage 5 미션
         }
         else
         {
-            // 다른 스테이지는 미션 없음
             UIMissionText.text = "";
         }
 
@@ -537,7 +572,8 @@ public class GameManager : MonoBehaviour
             }
         }
     }
-    // 🌟 Machine.cs가 머신 상호작용 가능 여부를 물어볼 때 사용
+
+    // Machine.cs가 머신 상호작용 가능 여부를 물어볼 때 사용
     public bool IsCardKeyMissionComplete()
     {
         // 현재 스테이지가 Stage 4(index 3)이고, 키를 다 모았는지 확인
@@ -550,7 +586,7 @@ public class GameManager : MonoBehaviour
         return false;
     }
 
-    // 🌟 Machine.cs가 최종 상호작용을 요청할 때 호출
+    // Machine.cs가 최종 상호작용을 요청할 때 호출
     public void ActivateCompletionPanel()
     {
         if (machineCompletionPanel != null)
@@ -564,11 +600,24 @@ public class GameManager : MonoBehaviour
         }
     }
 
-    // [ ★★★ 이 두 함수(StartCreditPan, PanToCreditsRoutine)를 통째로 추가 ★★★ ]
+    // 로그인 패널(machineCompletionPanel)에서 "로그인 성공" 버튼이 호출할 함수
+    public void OnCompletionPanelClosedSuccessfully()
+    {
+        // 1. "Memory" 씬을 봤다고 GameData에 플래그 설정
+        GameData.HasCompletedMemory = true;
 
-    /// <summary>
-    /// CreditTrigger가 호출할 크레딧 연출 시작 함수
-    /// </summary>
+        // 2. 현재 스테이지(Stage 4)를 "돌아올 곳"으로 GameData에 저장
+        //    이때 stageIndex는 3 (Stage 4)
+        GameData.StageToReload = stageIndex;
+
+        // [ ★★★ 이 Debug.Log 추가 ★★★ ]
+        Debug.LogWarning("MEMORY씬 로드 직전: GameData.StageToReload = " + GameData.StageToReload);
+
+        // 2. "Memory" 씬을 로드.
+        UnityEngine.SceneManagement.SceneManager.LoadScene("Memory");
+    }
+
+    // CreditTrigger가 호출할 크레딧 연출 시작 함수
     public void StartCreditPan(Transform target)
     {
         StartCoroutine(PanToCreditsRoutine(target));
@@ -604,8 +653,12 @@ public class GameManager : MonoBehaviour
         // 4. 패닝 완료 후 잠시 대기
         yield return new WaitForSeconds(1.0f);
 
-        // 5. "Credit" 씬을 로드
-        SceneManager.LoadScene("Credit");
+        // 5. Stage 5 씬을 언로드 (제거)
+        SceneManager.UnloadSceneAsync(stageSceneNames[stageIndex]); // stageIndex는 4 (Stage 5)
+        
+        // 6. "Credit" 씬을 Additive(추가) 모드로 로드
+        //    (Core 씬과 카메라가 파괴되지 않음)
+        SceneManager.LoadSceneAsync("Credit", LoadSceneMode.Additive);
     }
     
     // LoadStageAdditive 코루틴
