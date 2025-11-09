@@ -2549,7 +2549,9 @@ MonoBehaviour:
   m_OnCullStateChanged:
     m_PersistentCalls:
       m_Calls: []
-  m_text: eManagementeManagementeManagementeManagementeManagementeManagementeManagementeManagementeManagementeManagementeManagementeManagementeManagement
+  m_text: "\uB2F9\uC2E0\uC758 \uB9C8\uC74C\uC774 \uBA54\uC544\uB9AC\uCC98\uB7FC \uB0A8\uC544
+    \uB610 \uB2E4\uB978 \uB204\uAD70\uAC00\uC5D0\uAC8C \uB2FF\uC744 \uB54C\uAE4C\uC9C0
+    \uC6B8\uB824 \uD37C\uC9C8 \uAC83\uC785\uB2C8\uB2E4."
   m_isRightToLeft: 0
   m_fontAsset: {fileID: 11400000, guid: 73a837c3b36b5f94fa68a97040cf4e64, type: 2}
   m_sharedMaterial: {fileID: 6117070540072986912, guid: 73a837c3b36b5f94fa68a97040cf4e64, type: 2}
