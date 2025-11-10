@@ -62,24 +62,6 @@ public class EnemyMove : MonoBehaviour
         Invoke("Think", 2);
     }
 
-    // public void OnDamaged()
-    // {
-    //     // Sprite Alpha
-    //     spriteRenderer.color = new Color(1, 1, 1, 0.4f);
-
-    //     // Sprite Flip Y
-    //     spriteRenderer.flipY = true;
-
-    //     // Collider Disable
-    //     capsulecollider.enabled = false;
-
-    //     // Die Effect Jump
-    //     rigid.AddForce(Vector2.up * 5, ForceMode2D.Impulse);
-
-    //     // Destroy
-    //     Invoke("DeActive", 5);
-    // }
-
     void DeActive()
     {
         gameObject.SetActive(false);

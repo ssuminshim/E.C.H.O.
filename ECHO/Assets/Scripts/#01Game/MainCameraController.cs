@@ -10,7 +10,7 @@ public class MainCameraController : MonoBehaviour
     {
         Vector3 targetPos = new Vector3(player.position.x, player.position.y, player.position.z);
 
-        //targetPos.x
+        // targetPos.x
         // 만약 x < 0 
         // 카메라에 그만큼 +
 

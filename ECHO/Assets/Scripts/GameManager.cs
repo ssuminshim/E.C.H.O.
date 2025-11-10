@@ -98,20 +98,22 @@ public class GameManager : MonoBehaviour
 
     void Start()
     {
-        // [ ★★★ 디버깅 코드 1 ★★★ ]
         // 씬이 시작될 때 GameData가 *현재* 무슨 값을 가졌는지 확인
         Debug.LogWarning("GameManager.Start()가 막 시작되었습니다. GameData.StageToReload의 현재 값: " + GameData.StageToReload);
 
         isDead = false; // 플레이어 사망 상태 리셋
         if (player != null)
+        {
             player.enabled = true; // PlayerMove 스크립트 다시 활성화
+            player.Respawn();
+        }
         if (mainCamera != null && player != null)
         {
             mainCamera.transform.SetParent(player.transform, true);
             mainCamera.transform.localPosition = new Vector3(0, 0, -10); // (또는 원래 카메라 오프셋 값)
         }
 
-        // --- (모든 UI 패널 초기화 ...) ---
+        // 모든 UI 패널 초기화
         if (inactivityPopup != null)
             inactivityPopup.SetActive(false);
         isInactive = false;
@@ -125,10 +127,13 @@ public class GameManager : MonoBehaviour
 
         if (machineCompletionPanel != null)
             machineCompletionPanel.SetActive(false);
-        // --- UI 초기화 끝 ---
 
-        
-        // [ ★★★ 핵심 씬 로드 로직 (디버깅 코드 추가됨) ★★★ ]
+        health = 3; // (최대 체력이 3이라고 가정)
+        for (int i = 0; i < UIhealth.Length; i++)
+        {
+            // (꽉 찬 하트 스프라이트로 되돌림)
+            UIhealth[i].sprite = fullHeartSprite;
+        }
         
         // 1. "GameData.cs"에 저장된 스테이지 인덱스를 가져옴
         if (GameData.StageToReload < 0) // 기본값(-1)이거나 잘못된 값이면

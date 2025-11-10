@@ -10,8 +10,6 @@ public class Item : MonoBehaviour
 
     // (선택) E키를 누르라는 UI 텍스트
     public GameObject interactionUI;
-
-    // [ ★★★ 아래 2줄 추가 ★★★ ]
     public AudioClip collectSound; // 인스펙터에서 획득 효과음 연결
     private AudioSource audioSource; // 소리를 재생할 컴포넌트
 
@@ -22,7 +20,7 @@ public class Item : MonoBehaviour
         // AudioSource 컴포넌트를 찾아서 변수에 저장
         audioSource = GetComponent<AudioSource>();
 
-        // (선택 사항) 2D 환경에서는 3D 사운드가 필요 없으므로 2D로 설정
+        // 2D 환경에서는 3D 사운드가 필요 없으므로 2D로 설정
         audioSource.spatialBlend = 0f;
 
         // 시작할 때 UI 숨기기
@@ -32,6 +30,7 @@ public class Item : MonoBehaviour
         // 아이템에 콜라이더가 없으면 에러 발생
         if (GetComponent<Collider2D>() == null)
             Debug.LogError(name + " 아이템에 Collider2D가 없습니다!");
+            
         // 콜라이더가 IsTrigger가 아니면 에러 발생
         if (!GetComponent<Collider2D>().isTrigger)
             Debug.LogWarning(name + " 아이템의 Collider2D가 IsTrigger가 아닙니다.");

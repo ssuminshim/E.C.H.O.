@@ -131,13 +131,13 @@ public class PlayerMove : MonoBehaviour
             // 아래로 내려갈 때와 위로 올라갈 때의 조건을 분리
             if (xDifference < ladderXThreshold)
             {
-                // 1. 아래로 내려갈 때 (S키): 언제나 가능해야 함
+                // 1. 아래로 내려갈 때: 언제나 가능해야 함
                 if (verticalInput < 0)
                 {
                     gameObject.layer = climbingLayer;
                     StartClimbing();
                 }
-                // 2. 위로 올라갈 때 (W키): 땅에 서있지 않을 때만 가능해야 함
+                // 2. 위로 올라갈 때: 땅에 서있지 않을 때만 가능해야 함
                 else if (verticalInput > 0 && !IsGrounded())
                 {
                     StartClimbing();
@@ -152,7 +152,7 @@ public class PlayerMove : MonoBehaviour
             float xVelocity = h * maxSpeed;
             float yVelocity = verticalInput * climbSpeed;
 
-            // W/S를 누르지 않고 A/D만 눌렀을 때도 매달림 상태 유지
+            // 매달림 상태 유지
             if (verticalInput != 0 || h != 0)
             {
                 // 이동 중
@@ -168,7 +168,7 @@ public class PlayerMove : MonoBehaviour
                 anim.SetFloat("climbSpeed", 0f);
             }
 
-            // A/D 키를 눌렀을 때 좌우 반전 (유지)
+            // 좌우 키를 눌렀을 때 좌우 반전 (유지)
             if (h != 0)
             {
                 spriteRenderer.flipX = h > 0;
@@ -258,27 +258,12 @@ public class PlayerMove : MonoBehaviour
         // 기존에 있던 코인 관련
         if (collision.gameObject.tag == "Item")
         {
-            // Point
-            bool isBronze = collision.gameObject.name.Contains("Bronze");
-            bool isSilver = collision.gameObject.name.Contains("Silver");
-            bool isGold = collision.gameObject.name.Contains("Gold");
-
-            if (isBronze)
-                gameManager.stagePoint += 50;
-            else if (isSilver)
-                gameManager.stagePoint += 100;
-            else if (isGold)
-                gameManager.stagePoint += 300;
-
-            gameManager.stagePoint += 100;
-
             // Deactive Item
             collision.gameObject.SetActive(false);
 
             // Sound
             PlaySound("ITEM");
         }
-        // 나중에 문이랑 상호작용하여 다음 스테이지로 이동하는 걸로 수정해야 함
         else if (collision.gameObject.tag == "Finish")
         {
             // Next Stage
@@ -412,6 +397,4 @@ public class PlayerMove : MonoBehaviour
         // 감지된 콜라이더가 있다면(null이 아니라면) 땅에 서 있는 것!
         return rayHit.collider != null;
     }
-    
-
 }

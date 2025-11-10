@@ -3,11 +3,10 @@ using TMPro;
 
 public class Machine : MonoBehaviour
 {
-    // E키 상호작용을 보여줄 UI (선택 사항, 머신 오브젝트의 자식으로 두는 것이 일반적입니다)
+    // E키 상호작용을 보여줄 UI (선택 사항, 머신 오브젝트의 자식으로 두는 것이 일반적)
     public GameObject interactionUI; 
 
     private bool playerIsNear = false;
-    // private bool interactionAllowed = false; // GameManager에서 실시간으로 받아오므로 이 변수는 불필요해짐
 
     void Start()
     {
@@ -38,7 +37,7 @@ public class Machine : MonoBehaviour
             }
 
             // 3. UI 상태 업데이트
-            // 상호작용이 허용될 때만 UI를 켜고, 그렇지 않으면 끕니다.
+            // 상호작용이 허용될 때만 UI를 켜고, 그렇지 않으면 끔
             if (interactionUI != null)
             {
                 // 현재 UI 활성화 상태와 필요한 활성화 상태가 다를 때만 변경
@@ -69,9 +68,6 @@ public class Machine : MonoBehaviour
         if (other.CompareTag("Player"))
         {
             playerIsNear = true;
-            // 미션 완료 상태라면 바로 UI를 켜줍니다. (Update에서 실시간 체크하므로 필수 아님)
-            // if (interactionUI != null && GameManager.Instance.IsCardKeyMissionComplete())
-            //     interactionUI.SetActive(true);
         }
     }
 
