@@ -1764,7 +1764,7 @@ MonoBehaviour:
   m_OnCullStateChanged:
     m_PersistentCalls:
       m_Calls: []
-  m_Sprite: {fileID: 21300000, guid: fed24bd82cefc0c4a8ef64dab6231b53, type: 3}
+  m_Sprite: {fileID: -721943371, guid: a277e357acc5927419ecff556149dc51, type: 3}
   m_Type: 0
   m_PreserveAspect: 0
   m_FillCenter: 1
@@ -1849,7 +1849,7 @@ MonoBehaviour:
   m_OnCullStateChanged:
     m_PersistentCalls:
       m_Calls: []
-  m_Sprite: {fileID: 21300000, guid: fed24bd82cefc0c4a8ef64dab6231b53, type: 3}
+  m_Sprite: {fileID: -721943371, guid: a277e357acc5927419ecff556149dc51, type: 3}
   m_Type: 0
   m_PreserveAspect: 0
   m_FillCenter: 1
@@ -1977,7 +1977,7 @@ RectTransform:
   m_GameObject: {fileID: 8202296102673733512}
   m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
   m_LocalPosition: {x: 0, y: 0, z: 0}
-  m_LocalScale: {x: 2, y: 1.5, z: 3}
+  m_LocalScale: {x: 2, y: 1.8, z: 3}
   m_ConstrainProportionsScale: 0
   m_Children: []
   m_Father: {fileID: 4603184737185679729}
@@ -2412,8 +2412,8 @@ MonoBehaviour:
   cutsceneSceneName: PreviousLife
   deathZoomDuration: 2.7
   targetZoomSize: 1.2
-  fullHeartSprite: {fileID: 21300000, guid: fed24bd82cefc0c4a8ef64dab6231b53, type: 3}
-  emptyHeartSprite: {fileID: 21300002, guid: fed24bd82cefc0c4a8ef64dab6231b53, type: 3}
+  fullHeartSprite: {fileID: -721943371, guid: a277e357acc5927419ecff556149dc51, type: 3}
+  emptyHeartSprite: {fileID: -1337498574, guid: a277e357acc5927419ecff556149dc51, type: 3}
   inactivityPopup: {fileID: 659587427}
   inactivityLimit: 180
   popupDuration: 10
@@ -2471,7 +2471,7 @@ RectTransform:
   m_GameObject: {fileID: 8233126939363618692}
   m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
   m_LocalPosition: {x: 0, y: 0, z: 0}
-  m_LocalScale: {x: 2, y: 1.5, z: 3}
+  m_LocalScale: {x: 2, y: 1.8, z: 3}
   m_ConstrainProportionsScale: 0
   m_Children: []
   m_Father: {fileID: 4603184737185679729}
@@ -2501,7 +2501,7 @@ MonoBehaviour:
   m_OnCullStateChanged:
     m_PersistentCalls:
       m_Calls: []
-  m_Sprite: {fileID: 21300000, guid: fed24bd82cefc0c4a8ef64dab6231b53, type: 3}
+  m_Sprite: {fileID: -721943371, guid: a277e357acc5927419ecff556149dc51, type: 3}
   m_Type: 0
   m_PreserveAspect: 0
   m_FillCenter: 1
@@ -2520,7 +2520,7 @@ RectTransform:
   m_GameObject: {fileID: 3472897609953459534}
   m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
   m_LocalPosition: {x: 0, y: 0, z: 0}
-  m_LocalScale: {x: 2, y: 1.5, z: 0}
+  m_LocalScale: {x: 2, y: 1.8, z: 0}
   m_ConstrainProportionsScale: 0
   m_Children: []
   m_Father: {fileID: 4603184737185679729}
