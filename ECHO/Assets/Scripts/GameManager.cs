@@ -134,9 +134,9 @@ public class GameManager : MonoBehaviour
             // (꽉 찬 하트 스프라이트로 되돌림)
             UIhealth[i].sprite = fullHeartSprite;
         }
-        
+
         // 1. "GameData.cs"에 저장된 스테이지 인덱스를 가져옴
-        if (GameData.StageToReload < 0) // 기본값(-1)이거나 잘못된 값이면
+        if (GameData.StageToReload < 0) // 기본값(-1)이거나 잘못된 값이면  
         {
             stageIndex = 0;
             // [ ★★★ 디버깅 코드 2 ★★★ ]
@@ -150,8 +150,8 @@ public class GameManager : MonoBehaviour
         }
 
         // 2. [중요!] 값을 한 번 사용했으니, 다음 "새 게임"을 위해 기본값(-1)으로 리셋
-        GameData.StageToReload = -1; 
-        Debug.Log("GameData.StageToReload 값을 -1로 리셋했습니다.");
+        GameData.StageToReload = 0; 
+        Debug.Log("GameData.StageToReload 값을 0로 리셋했습니다.");
 
         // 3. 게임 시작 시 첫 스테이지 UI 텍스트 설정
         UIStage.text = "STAGE " + (stageIndex + 1);
@@ -618,8 +618,9 @@ public class GameManager : MonoBehaviour
         // [ ★★★ 이 Debug.Log 추가 ★★★ ]
         Debug.LogWarning("MEMORY씬 로드 직전: GameData.StageToReload = " + GameData.StageToReload);
 
+        // 삭제
         // 2. "Memory" 씬을 로드.
-        UnityEngine.SceneManagement.SceneManager.LoadScene("Memory");
+        // UnityEngine.SceneManagement.SceneManager.LoadScene("Memory");
     }
 
     // CreditTrigger가 호출할 크레딧 연출 시작 함수
@@ -665,7 +666,7 @@ public class GameManager : MonoBehaviour
         //    (Core 씬과 카메라가 파괴되지 않음)
         SceneManager.LoadSceneAsync("Credit", LoadSceneMode.Additive);
     }
-    
+
     // LoadStageAdditive 코루틴
     IEnumerator LoadStageAdditive(string sceneName)
     {
@@ -675,5 +676,18 @@ public class GameManager : MonoBehaviour
             yield return null;
         }
         PlayerReposition(); // 씬 로드 후 플레이어 재배치
+    }
+
+    // 설정창 메인화면 돌아가기 함수
+    public void ReturnToMainMenu()
+    {
+        // "MainMenu" 씬을 로드합니다.
+        SceneManager.LoadScene("#00MainMenu");
+    }
+    
+    // 게임 종료 버튼
+    public void QuitGame()
+    {
+        Application.Quit();
     }
 }

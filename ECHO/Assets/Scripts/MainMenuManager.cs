@@ -15,9 +15,9 @@ public class MainMenuManager : MonoBehaviour
         SceneManager.LoadScene("#01Intro");
     }
 
-    // (선택) 게임 종료 버튼
-    // public void QuitGame()
-    // {
-    //     Application.Quit();
-    // }
+    // 게임 종료 버튼
+    public void QuitGame()
+    {
+        Application.Quit();
+    }
 }
