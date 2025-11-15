@@ -3,12 +3,24 @@ using BackEnd;
 
 public class BackendManager : MonoBehaviour
 {
+    public static BackendManager Instance;
+
     private void Awake()
     {
-        // Update() 메소드의 Backend.AsyncPoll(); 호출을 위해 오브젝트를 파괴하지 않는다.
-        DontDestroyOnLoad(gameObject);
-
-        // 뒤끝 서버 초기화
+        if (Instance == null)
+        {
+            // 내가 첫 번째 인스턴스라면
+            Instance = this;
+            DontDestroyOnLoad(gameObject); // 나를 파괴하지 않음
+        }
+        else
+        {
+            // 이미 인스턴스가 있다면 (중복)
+            Destroy(gameObject); // 새로 생긴 나 자신을 파괴
+            return; // 중복 객체는 초기화를 실행하면 안 됨
+        }
+        
+        // 뒤끝 서버 초기화 (첫 번째 인스턴스만 실행함)
         BackendSetup();
     }
 
@@ -29,4 +41,5 @@ public class BackendManager : MonoBehaviour
             Debug.LogError("초기화 실패 : " + bro);
         }
     }
+
 }

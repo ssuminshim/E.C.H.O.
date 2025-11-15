@@ -1,28 +1,23 @@
 using UnityEngine;
 using UnityEngine.SceneManagement;
 
-// 스크립트의 클래스 이름은 실제 파일 이름과 일치해야 합니다.
+// 스크립트의 클래스 이름은 실제 파일 이름과 일치해야 함
 public class EndingScenario : MonoBehaviour 
 {
-    // (Start() 함수는 비워둡니다)
+    // Start() 함수는 비워둠
     void Start()
     {
         
     }
 
-    // Update 함수만 남겨두고, 스페이스바를 누를 때만 작동하게 합니다.
+    // Update 함수만 남겨두고, 스페이스바를 누를 때만 작동하게 함
     void Update()
     {
         // 엔딩 연출이 끝나고 (또는 아무때나) 스페이스바를 누르면
         if (Input.GetKeyDown(KeyCode.Space))
         {
-            // [ ★★★ 수정 2: 가장 중요 ★★★ ]
-            // GameData.StageToReload 값을 *절대* 건드리지 않습니다!
-            
-            // GameData.StageToReload = 0; // <--- 이런 코드가 있다면 반드시 삭제하세요!
-            
-            // Core 씬을 로드합니다.
-            // GameManager가 알아서 GameData에 저장된 '3'을 읽을 것입니다.
+            // GameData.StageToReload 값 *절대* 건드리지 XXXX!!
+            // Core 씬을 로드
             SceneManager.LoadScene("Core");
         }
     }

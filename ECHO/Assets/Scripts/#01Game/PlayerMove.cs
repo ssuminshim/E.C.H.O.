@@ -50,6 +50,16 @@ public class PlayerMove : MonoBehaviour
 
         // RigidBody2D의 기본 Gravity Scale 값 저장 (Inspector 값으로 초기화)
         defaultGravityScale = rigid.gravityScale;
+
+        // GameManager 싱글톤에 나 자신(Player)을 등록합니다.
+        if (GameManager.Instance != null)
+        {
+            GameManager.Instance.RegisterPlayer(this);
+        }
+        else
+        {
+            Debug.LogError("Player가 GameManager.Instance를 찾을 수 없습니다! Core 씬 로드 순서를 확인하세요.");
+        }
     }
 
     public void PlayWalkSound()

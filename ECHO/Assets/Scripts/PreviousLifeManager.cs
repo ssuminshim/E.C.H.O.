@@ -34,20 +34,29 @@ public class PreviousLifeManager : MonoBehaviour
         canRetry = true;
     }
 
-    void Update()
+void Update()
     {
         // "재도전"이 활성화됐고, 스페이스바를 눌렀다면
         if (canRetry && Input.GetKeyDown(KeyCode.Space))
         {
-            // Core 씬을 로드
-            // Core 씬의 GameManager는 GameData.StageToReload 값을 읽어서
-            // 우리가 죽었던 그 스테이지를 알아서 로드
-            SceneManager.LoadScene("Core");
+            // [수정!] 스페이스바 중복 입력을 막기 위해
+            canRetry = false; 
 
-            // Loading 씬을 로드해 로그인 초기화
-            // SceneManager.LoadScene("#02Loading");
+            // [수정!] 살아있는 GameManager의 부활 함수를 호출
+            GameManager gameManager = GameManager.Instance;
+            if (gameManager != null)
+            {
+                gameManager.ReloadStageAfterDeath();
+            }
+            else
+            {
+                Debug.LogError("GameManager.Instance를 찾을 수 없습니다! Core 씬이 파괴되었는지 확인하세요.");
+                // 비상시: 어쩔 수 없이 Core 씬 로드 (버그가 다시 발생하겠지만)
+                SceneManager.LoadScene("Core");
+            }
         }
     }
+
     private void ResponseToLogin(string ID, string PW)
     {
         // 서버에 로그인 요청

@@ -14,6 +14,7 @@ public class Item : MonoBehaviour
     private AudioSource audioSource; // 소리를 재생할 컴포넌트
 
     private bool playerIsNear = false;
+    private AudioSource promptAudio; // E키 프롬프트의 오디오
 
     void Start()
     {
@@ -25,7 +26,10 @@ public class Item : MonoBehaviour
 
         // 시작할 때 UI 숨기기
         if (interactionUI != null)
+        {
             interactionUI.SetActive(false);
+            promptAudio = interactionUI.GetComponent<AudioSource>();
+        }
 
         // 아이템에 콜라이더가 없으면 에러 발생
         if (GetComponent<Collider2D>() == null)
@@ -38,25 +42,24 @@ public class Item : MonoBehaviour
 
     void Update()
     {
-        // 소리 재생 (GameManager로 넘어가기 전에 재생)
-        if (collectSound != null)
-        {
-            // PlayOneShot은 동시에 여러 소리가 나도 겹치지 않게 재생
-            // (주의: Destroy(gameObject)보다 먼저 호출되어야 함)
-            AudioSource.PlayClipAtPoint(collectSound, transform.position);
-        }
-
         // 플레이어가 근처에 있고 E키를 눌렀다면
         if (playerIsNear && Input.GetKeyDown(KeyCode.E))
         {
-            // 1. GameManager에게 "아이템 획득" 신호 보내기
+            // E키가 눌린 '그 프레임'에 '한 번만' 실행됨
+            if (collectSound != null)
+            {
+                // PlayClipAtPoint는 이 오브젝트가 파괴되어도 소리가 끝까지 재생되게 함
+                AudioSource.PlayClipAtPoint(collectSound, transform.position);
+            }
+            
+            // 2. GameManager에게 "아이템 획득" 신호 보내기
             GameManager.Instance.OnItemCollected(itemName, popupMessage);
 
-            // 2. (선택) UI가 켜져 있었다면 끄기
+            // 3. (선택) UI가 켜져 있었다면 끄기
             if (interactionUI != null)
                 interactionUI.SetActive(false);
 
-            // 3. 아이템 오브젝트 자신을 파괴 (또는 SetActive(false))
+            // 4. 아이템 오브젝트 자신을 파괴 (또는 SetActive(false))
             Destroy(gameObject);
         }
     }
@@ -69,7 +72,13 @@ public class Item : MonoBehaviour
             playerIsNear = true;
             // (선택) "E키" UI 켜기
             if (interactionUI != null)
+            {
                 interactionUI.SetActive(true);
+                if (promptAudio != null)
+                {
+                    promptAudio.Play();
+                }
+            }
         }
     }
 

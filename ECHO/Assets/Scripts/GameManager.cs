@@ -7,7 +7,6 @@ using UnityEngine.SceneManagement;
 
 public class GameManager : MonoBehaviour
 {
-    // --- Singleton Pattern ---
     // 씬이 변경되어도 GameManager가 플레이어/스테이지를 관리할 수 있도록 싱글톤으로 만듦
     public static GameManager Instance;
 
@@ -26,8 +25,6 @@ public class GameManager : MonoBehaviour
             Destroy(gameObject);
             return; // Awake()의 나머지 코드를 실행하지 않음
         }
-        // [ ★★★ 수정 끝 ★★★ ]
-
 
         // GameManager에 붙어있는 AudioSource 컴포넌트를 찾음
         bgmPlayer = GetComponent<AudioSource>();
@@ -98,68 +95,155 @@ public class GameManager : MonoBehaviour
 
     void Start()
     {
-        // 씬이 시작될 때 GameData가 *현재* 무슨 값을 가졌는지 확인
-        Debug.LogWarning("GameManager.Start()가 막 시작되었습니다. GameData.StageToReload의 현재 값: " + GameData.StageToReload);
-
-        isDead = false; // 플레이어 사망 상태 리셋
-        if (player != null)
-        {
-            player.enabled = true; // PlayerMove 스크립트 다시 활성화
-            player.Respawn();
-        }
-        if (mainCamera != null && player != null)
-        {
-            mainCamera.transform.SetParent(player.transform, true);
-            mainCamera.transform.localPosition = new Vector3(0, 0, -10); // (또는 원래 카메라 오프셋 값)
-        }
-
-        // 모든 UI 패널 초기화
-        if (inactivityPopup != null)
-            inactivityPopup.SetActive(false);
+        FindAndAssignUI(); 
+        
+        isDead = false; 
         isInactive = false;
         inactivityTimer = 0f;
         Time.timeScale = 1f; 
 
+        if (inactivityPopup != null)
+            inactivityPopup.SetActive(false);
         if (itemPopupPanel != null)
             itemPopupPanel.SetActive(false); 
         if (UIMissionText != null)
             UIMissionText.text = "";
-
         if (machineCompletionPanel != null)
             machineCompletionPanel.SetActive(false);
 
-        health = 3; // (최대 체력이 3이라고 가정)
-        for (int i = 0; i < UIhealth.Length; i++)
-        {
-            // (꽉 찬 하트 스프라이트로 되돌림)
-            UIhealth[i].sprite = fullHeartSprite;
-        }
-
-        // 1. "GameData.cs"에 저장된 스테이지 인덱스를 가져옴
-        if (GameData.StageToReload < 0) // 기본값(-1)이거나 잘못된 값이면  
+        if (GameData.StageToReload < 0) 
         {
             stageIndex = 0;
-            // [ ★★★ 디버깅 코드 2 ★★★ ]
-            Debug.LogError("GameData.StageToReload 값이 0보다 작아서, Stage 1 (index 0)을 로드합니다.");
         }
         else
         {
             stageIndex = GameData.StageToReload;
-            // [ ★★★ 디버깅 코드 3 ★★★ ]
-            Debug.LogWarning("GameData.StageToReload 값 (" + stageIndex + ")을 읽었습니다. 이 스테이지를 로드합니다.");
         }
+        GameData.StageToReload = -1; 
 
-        // 2. [중요!] 값을 한 번 사용했으니, 다음 "새 게임"을 위해 기본값(-1)으로 리셋
-        GameData.StageToReload = 0; 
-        Debug.Log("GameData.StageToReload 값을 0로 리셋했습니다.");
-
-        // 3. 게임 시작 시 첫 스테이지 UI 텍스트 설정
         UIStage.text = "STAGE " + (stageIndex + 1);
-
-        // 4. 저장된 스테이지(Stage 1 또는 Stage 4)를 로드
         StartCoroutine(LoadInitialStage());
     }
 
+    /// 씬이 다시 로드될 때 깨진 UI 참조(Health, Mission 등)를
+    /// "GameUI" 태그를 기준으로 다시 찾고, 체력을 리셋
+    void FindAndAssignUI()
+    {
+        // 1. 씬에서 "GameUI" 태그를 가진 Canvas를 찾음
+        GameObject uiRoot = GameObject.FindWithTag("GameUI");
+        if (uiRoot == null)
+        {
+            Debug.LogError("GameManager가 'GameUI' 태그를 가진 Canvas를 찾지 못했습니다! Core 씬의 Canvas에 'GameUI' 태그를 설정했는지 확인하세요!");
+            return;
+        }
+
+        // 2. UI 참조를 '안전하게' 다시 찾습니다.
+        Transform tempT; // 임시 Transform 변수
+
+        // 하트 UI 초기화
+        UIhealth = new Image[3]; // (최대 체력 3 가정)
+
+        // Health1
+        tempT = uiRoot.transform.Find("Health1");
+        if (tempT == null) Debug.LogError("GameUI에서 'Health1' 오브젝트를 찾지 못했습니다!");
+        else UIhealth[0] = tempT.GetComponent<Image>();
+
+        // Health2
+        tempT = uiRoot.transform.Find("Health2");
+        if (tempT == null) Debug.LogError("GameUI에서 'Health2' 오브젝트를 찾지 못했습니다!");
+        else UIhealth[1] = tempT.GetComponent<Image>();
+
+        // Health3
+        tempT = uiRoot.transform.Find("Health3");
+        if (tempT == null) Debug.LogError("GameUI에서 'Health3' 오브젝트를 찾지 못했습니다!");
+        else UIhealth[2] = tempT.GetComponent<Image>();
+
+        // MissionText
+        tempT = uiRoot.transform.Find("MissionText");
+        if (tempT == null) Debug.LogError("GameUI에서 'MissionText' 오브젝트를 찾지 못했습니다!");
+        else UIMissionText = tempT.GetComponent<TMP_Text>();
+
+        // ItemGetPopup
+        tempT = uiRoot.transform.Find("ItemGetPopup");
+        if (tempT == null) Debug.LogError("GameUI에서 'ItemGetPopup' 오브젝트를 찾지 못했습니다!");
+        else
+        {
+            itemPopupPanel = tempT.gameObject;
+            Transform popupTextT = itemPopupPanel.transform.Find("PopupText");
+            if (popupTextT == null) Debug.LogError("ItemGetPopup에서 'PopupText' 오브젝트를 찾지 못했습니다!");
+            else itemPopupText = popupTextT.GetComponent<TMP_Text>();
+        }
+
+        // MachinePopup
+        tempT = uiRoot.transform.Find("MachinePopup");
+        if (tempT == null) Debug.LogError("GameUI에서 'MachinePopup' 오브젝트를 찾지 못했습니다!");
+        else machineCompletionPanel = tempT.gameObject;
+
+        // InactivityPopup
+        tempT = uiRoot.transform.Find("InactivityPopup");
+        if (tempT == null) Debug.LogError("GameUI에서 'InactivityPopup' 오브젝트를 찾지 못했습니다!");
+        else inactivityPopup = tempT.gameObject;
+
+
+        // [ 3. 체력/UI 리셋 로직 ]
+        health = 3;
+
+        if (UIhealth != null && UIhealth.Length > 0 && UIhealth[0] != null)
+        {
+            for (int i = 0; i < UIhealth.Length; i++)
+            {
+                if (UIhealth[i] != null && fullHeartSprite != null)
+                {
+                    UIhealth[i].sprite = fullHeartSprite;
+                }
+            }
+        }
+        else
+        {
+            Debug.LogError("UIhealth 배열을 찾거나 채우는 데 실패했습니다! Health1, 2, 3 이름이 Canvas 자식으로 있는지 확인하세요!");
+        }
+
+        Debug.LogWarning("GameManager가 UI 참조를 모두 다시 연결하고 체력을 리셋했습니다.");
+    }
+
+    public void RegisterPlayer(PlayerMove newPlayer)
+    {
+        Debug.LogWarning("새로운 Player가 GameManager에 등록되었습니다!");
+        
+        // 1. 'player' 변수를 새로 등록된 플레이어로 설정
+        player = newPlayer;
+
+        // 2. 카메라 참조도 새로 찾음
+        if (mainCamera == null)
+        {
+            GameObject cameraObj = GameObject.FindWithTag("MainCamera");
+            if (cameraObj != null)
+                mainCamera = cameraObj.GetComponent<Camera>();
+        }
+
+        // 3. 부활 로직 (체력 리셋은 Start/FindAndAssignUI가 담당)
+        isDead = false; 
+        player.enabled = true;
+        player.Respawn(); // 물리/애니메이션 리셋
+
+        // 4. 카메라를 새 플레이어의 자식으로 붙임
+        if (mainCamera != null && player != null)
+        {
+            mainCamera.transform.SetParent(player.transform, true);
+            mainCamera.transform.localPosition = new Vector3(0, 0, -10); // 원래 카메라 오프셋
+        }
+
+        // 5. 카메라 클램프가 있다면 타겟도 재설정
+        if (mainCamera != null)
+        {
+            CameraClamp clampScript = mainCamera.GetComponent<CameraClamp>();
+            if (clampScript != null)
+            {
+                clampScript.target = player.transform;
+            }
+        }
+    }
+    
     IEnumerator LoadInitialStage()
     {
         // 1. stageIndex에 맞는 씬 이름을 가져옴
@@ -272,50 +356,82 @@ public class GameManager : MonoBehaviour
 
     // 씬을 비동기(Async)로 로드/언로드하는 코루틴
     IEnumerator NextStageRoutine()
-    {
-        // 1. 현재 스테이지 씬을 언로드
-        if (!string.IsNullOrEmpty(stageSceneNames[stageIndex]))
+    {
+        // [ ★★★ 여기에 추가 ★★★ ]
+        // 0. 씬 전환 동안 플레이어를 "얼림" (스크립트 비활성화)
+        if (player != null)
+            player.enabled = false;
+
+        // 1. 현재 스테이지 씬을 언로드
+        if (!string.IsNullOrEmpty(stageSceneNames[stageIndex]))
+        {
+            SceneManager.UnloadSceneAsync(stageSceneNames[stageIndex]);
+            currentStage = null; // (이전 답변에서 추가한 코드)
+        }
+
+        // 2. 인덱스 및 포인트 계산
+        stageIndex++;
+
+        // 3. 다음 스테이지 씬을 Additive로 로드하고 완료될 때까지 대기
+        AsyncOperation asyncLoad = SceneManager.LoadSceneAsync(stageSceneNames[stageIndex], LoadSceneMode.Additive);
+        while (!asyncLoad.isDone)
+        {
+            yield return null; // 씬 로드가 끝날 때까지 1프레임 대기
+        }
+
+        // 4. (새 씬의 Stage.cs가 로드됨)
+
+        // 5. 새로 로드된 씬의 Stage.cs가 등록될 때까지 기다림 (이전 답변에서 추가한 코드)
+        float waitTimer = 0f;
+        while (currentStage == null)
+        {
+            if (waitTimer > 3.0f) // 3초 이상 등록이 안 되면 에러
+            {
+                string sceneName = stageSceneNames[stageIndex];
+                Debug.LogError(sceneName + " 씬에 Stage.cs가 없거나 등록에 실패했습니다!");
+                
+                // [ ★★★ 여기에 추가 ★★★ ]
+                // 에러가 나더라도 플레이어는 다시 활성화
+                if (player != null)
+                    player.enabled = true; 
+
+                yield break; // 코루틴 중단
+            }
+            waitTimer += Time.deltaTime;
+            yield return null;
+        }
+
+        // 6. UI 텍스트 업데이트
+        UIStage.text = "STAGE " + (stageIndex + 1);
+
+        // 7. 새 씬의 카메라 경계를 찾으라고 카메라에게 알림
+        if (mainCamera != null)
+        {
+            mainCamera.GetComponent<CameraClamp>()?.FindNewBoundary();
+        }
+
+        // 8. 새 스테이지에 맞는 미션을 설정
+        SetupMissionForStage(stageIndex);
+
+        // 9. 플레이어 재배치
+        PlayerReposition();
+
+        // [ ★★★ 여기에 추가 ★★★ ]
+        // 10. 씬 전환 완료! 플레이어를 "해제" (스크립트 활성화)
+        if (player != null)
         {
-            SceneManager.UnloadSceneAsync(stageSceneNames[stageIndex]);
+            player.enabled = true;
+            player.Respawn(); // 물리/애니메이션 상태 리셋
         }
-
-        // 2. 인덱스 및 포인트 계산
-        stageIndex++;
-
-        // 3. 다음 스테이지 씬을 Additive로 로드하고 완료될 때까지 대기
-        AsyncOperation asyncLoad = SceneManager.LoadSceneAsync(stageSceneNames[stageIndex], LoadSceneMode.Additive);
-        while (!asyncLoad.isDone)
-        {
-            yield return null; // 씬 로드가 끝날 때까지 1프레임 대기
-        }
-
-        // 4. (새 씬의 Stage.cs가 로드됨)
-
-        // 5. UI 텍스트 업데이트
-        UIStage.text = "STAGE " + (stageIndex + 1);
-
-        // 6. 새 씬의 카메라 경계를 찾으라고 카메라에게 알림
-        if (mainCamera != null)
-        {
-            mainCamera.GetComponent<CameraClamp>()?.FindNewBoundary();
-        }
-
-        // 7. 새 스테이지에 맞는 미션을 설정
-        SetupMissionForStage(stageIndex);
-
-        // 8. 플레이어 재배치
-        PlayerReposition();
-    }
+    }
 
     public void HealthDown()
     {
-
-        if (isDead) return;
+        if (isDead || player == null) return;
 
         if (health > 1)
         {
             health--;
-            // UIhealth[health].color = new Color(1, 0, 0, 0.4f);
             UIhealth[health].sprite = emptyHeartSprite;
         }
         else
@@ -325,7 +441,6 @@ public class GameManager : MonoBehaviour
             health = 0;
 
             // All Health UI Off
-            // UIhealth[0].color = new Color(1, 0, 0, 0.4f);
             UIhealth[0].sprite = emptyHeartSprite;
 
             // Player Die Effect
@@ -341,6 +456,50 @@ public class GameManager : MonoBehaviour
             // UIRestartBtn.SetActive(true);
             StartCoroutine(PlayerDeathSequence());
         }
+    }
+
+    /// PreviousLife 씬의 '다시 시도' 버튼이 호출할 함수
+    public void ReloadStageAfterDeath()
+    {
+        // 1. PreviousLife 씬 (cutsceneSceneName)을 언로드
+        // (Inspector에 설정된 컷씬 이름과 동일해야 함)
+        SceneManager.UnloadSceneAsync(cutsceneSceneName);
+
+        // 2. 씬이 바뀌었으므로 UI 참조를 다시 찾고 체력을 리셋
+        // (FindAndAssignUI가 체력/하트 UI도 리셋함)
+        FindAndAssignUI(); 
+
+        // 3. 플레이어 상태 리셋
+        isDead = false;
+        Time.timeScale = 1;
+        
+        // 4. 플레이어 스크립트에 "부활" 신호 보내기
+        if (player != null)
+        {
+            player.Respawn(); // 물리/애니메이션 리셋
+        }
+        else
+        {
+            Debug.LogError("플레이어 참조가 없습니다! Core 씬을 확인하세요.");
+            return;
+        }
+
+        // 5. GameData에 저장된 "죽었던 스테이지 인덱스"를 가져옴
+        if (GameData.StageToReload >= 0)
+        {
+            stageIndex = GameData.StageToReload;
+            GameData.StageToReload = -1; // 플래그 리셋
+        }
+        // (else: 혹시 모르니 GameData에 값이 없으면, 그냥 마지막 stageIndex를 재시도)
+
+        // 6. 스테이지 UI 텍스트 업데이트
+        if (UIStage != null)
+        {
+            UIStage.text = "STAGE " + (stageIndex + 1);
+        }
+        
+        // 7. 스테이지 로드 코루틴 실행
+        StartCoroutine(LoadInitialStage());
     }
 
     void OnTriggerEnter2D(Collider2D collision)
@@ -359,22 +518,31 @@ public class GameManager : MonoBehaviour
     }
 
     // 현재 스테이지의 스폰 지점을 사용
-    void PlayerReposition()
-    {
-        if (currentStage != null && currentStage.spawnPoint != null)
-        {
-            // 등록된 현재 스테이지의 스폰 지점으로 플레이어 이동
-            player.transform.position = currentStage.spawnPoint.position;
-        }
-        else
-        {
-            // 혹시 모르니 예외 처리 (기존 코드)
-            player.transform.position = new Vector3(0, 0, -1);
-            Debug.LogWarning("Current Stage 또는 Spawn Point가 등록되지 않아 기본 위치로 스폰합니다.");
-        }
+    void PlayerReposition()
+    {
+        if (currentStage != null && currentStage.spawnPoint != null)
+        {
+            // 등록된 현재 스테이지의 스폰 지점으로 플레이어 이동
+            player.transform.position = currentStage.spawnPoint.position;
+        }
+        else
+        {
+            // [ ★★★ 디버깅을 위해 수정 ★★★ ]
+            // 혹시 모르니 예외 처리
+            if (currentStage == null)
+            {
+                Debug.LogWarning("PlayerReposition: currentStage가 null입니다. Stage.cs가 등록되지 않았습니다.");
+            }
+            else if (currentStage.spawnPoint == null)
+            {
+                // 이게 스폰 실패의 원인일 수 있습니다.
+                Debug.LogError("PlayerReposition: " + currentStage.name + "의 spawnPoint가 null입니다! 씬에서 스폰 지점을 연결했는지 확인하세요.");
+            }
+            player.transform.position = new Vector3(0, 0, -1);
+        }
 
-        player.VelocityZero();
-    }
+        player.VelocityZero();
+    }
 
     public void Restart()
     {
@@ -417,6 +585,8 @@ public class GameManager : MonoBehaviour
     // 플레이어 사망 연출 코루틴
     IEnumerator PlayerDeathSequence()
     {
+        StopMusic();
+
         // 1. Die 애니메이션이 재생될 시간을 잠시 기다림
         yield return new WaitForSeconds(0.5f); // 0.5초 대기 (Die 애니메이션 길이에 맞춰 조절)
 
@@ -448,12 +618,19 @@ public class GameManager : MonoBehaviour
         }
 
         // 4. (선택) 줌인 완료 후 잠시 멈춰서 보여주기
-        yield return new WaitForSeconds(1.0f); // 1초간 줌인 상태 유지
+        yield return new WaitForSeconds(0.8f); // 0.8초간 줌인 상태 유지
 
         // 5. 컷씬 씬 로드
-        SceneManager.LoadScene(cutsceneSceneName);
+        if (stageIndex >= 0 && stageIndex < stageSceneNames.Count && !string.IsNullOrEmpty(stageSceneNames[stageIndex]))
+        {
+            SceneManager.UnloadSceneAsync(stageSceneNames[stageIndex]);
+        }
+        
+        // (cutsceneSceneName 변수에 "PreviousLife"가 할당되어 있어야 함)
+        SceneManager.LoadSceneAsync(cutsceneSceneName, LoadSceneMode.Additive);
     }
 
+    // 자리 비움 팝업
     IEnumerator ReturnToMainMenuRoutine()
     {
         Debug.Log("자리 비움 감지됨. 팝업을 띄웁니다.");
@@ -471,9 +648,10 @@ public class GameManager : MonoBehaviour
         Time.timeScale = 1f;
 
         // 4. MainMenu 씬을 로드
-        SceneManager.LoadScene("MainMenu");
+        SceneManager.LoadScene("#00MainMenu");
     }
 
+    // 스테이지별 미션
     void SetupMissionForStage(int index)
     {
         AudioClip clipToPlay = null;
@@ -545,7 +723,6 @@ public class GameManager : MonoBehaviour
             cardKeysCollected++;
             CheckMissionProgress(); // 미션 상태 확인
         }
-        // (else if (itemName == "HealthPotion") { ... } 등등)
     }
 
     // 아이템 팝업을 2초간 띄웠다가 숨기는 코루틴
@@ -605,9 +782,19 @@ public class GameManager : MonoBehaviour
         }
     }
 
+    public void StopMusic()
+    {
+        if (bgmPlayer != null)
+        {
+            bgmPlayer.Stop();
+        }
+    }
+
     // 로그인 패널(machineCompletionPanel)에서 "로그인 성공" 버튼이 호출할 함수
     public void OnCompletionPanelClosedSuccessfully()
     {
+        StopMusic();
+
         // 1. "Memory" 씬을 봤다고 GameData에 플래그 설정
         GameData.HasCompletedMemory = true;
 
@@ -615,12 +802,7 @@ public class GameManager : MonoBehaviour
         //    이때 stageIndex는 3 (Stage 4)
         GameData.StageToReload = stageIndex;
 
-        // [ ★★★ 이 Debug.Log 추가 ★★★ ]
         Debug.LogWarning("MEMORY씬 로드 직전: GameData.StageToReload = " + GameData.StageToReload);
-
-        // 삭제
-        // 2. "Memory" 씬을 로드.
-        // UnityEngine.SceneManagement.SceneManager.LoadScene("Memory");
     }
 
     // CreditTrigger가 호출할 크레딧 연출 시작 함수
