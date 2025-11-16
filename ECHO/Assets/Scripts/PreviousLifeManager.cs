@@ -34,28 +34,19 @@ public class PreviousLifeManager : MonoBehaviour
         canRetry = true;
     }
 
-void Update()
-    {
-        // "재도전"이 활성화됐고, 스페이스바를 눌렀다면
-        if (canRetry && Input.GetKeyDown(KeyCode.Space))
-        {
-            // [수정!] 스페이스바 중복 입력을 막기 위해
-            canRetry = false; 
-
-            // [수정!] 살아있는 GameManager의 부활 함수를 호출
-            GameManager gameManager = GameManager.Instance;
-            if (gameManager != null)
-            {
-                gameManager.ReloadStageAfterDeath();
-            }
-            else
-            {
-                Debug.LogError("GameManager.Instance를 찾을 수 없습니다! Core 씬이 파괴되었는지 확인하세요.");
-                // 비상시: 어쩔 수 없이 Core 씬 로드 (버그가 다시 발생하겠지만)
-                SceneManager.LoadScene("Core");
-            }
-        }
-    }
+    void Update()
+    {
+        // "재도전"이 활성화됐고, 스페이스바를 눌렀다면
+        if (canRetry && Input.GetKeyDown(KeyCode.Space))
+        {
+            canRetry = false; 
+            
+            // Additive 방식 대신 Core" 씬을 Single 모드로 로드함
+            // 그러면 1단계에서 수정한 GameManager의 OnSceneLoaded가
+            // 이 로드를 감지하고 InitializeGame()을 실행하여 부활시킴.
+            SceneManager.LoadScene("Core");
+        }
+    }
 
     private void ResponseToLogin(string ID, string PW)
     {

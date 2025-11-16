@@ -277,7 +277,7 @@ public class PlayerMove : MonoBehaviour
         else if (collision.gameObject.tag == "Finish")
         {
             // Next Stage
-            gameManager.NextStage();
+            GameManager.Instance.NextStage();
 
             // Sound
             PlaySound("FINISH");
