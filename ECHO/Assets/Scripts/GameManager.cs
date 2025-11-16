@@ -863,6 +863,15 @@ public class GameManager : MonoBehaviour
     // 설정창 메인화면 돌아가기 함수
     public void ReturnToMainMenu()
     {
+        Time.timeScale = 1f;
+        
+        if (GameManager.Instance != null)
+        {
+            // DontDestroyOnLoad로 등록된 객체를 파괴합니다.
+            Destroy(GameManager.Instance.gameObject); 
+            GameManager.Instance = null; // 인스턴스 참조도 확실히 제거
+        }
+        
         // "MainMenu" 씬을 로드합니다.
         SceneManager.LoadScene("#00MainMenu");
     }
