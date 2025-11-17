@@ -305,7 +305,7 @@ public class PlayerMove : MonoBehaviour
     void OnDamaged(Vector2 targetPos)
     {
         // Health Down
-        gameManager.HealthDown();
+        GameManager.Instance.HealthDown();
 
         // Change Layer (Immortal Active)
         gameObject.layer = 11;

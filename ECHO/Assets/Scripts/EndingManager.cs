@@ -18,13 +18,23 @@ public class EndingScenario : MonoBehaviour
         {
             // 1. GameData에 Stage 4 (인덱스 3)로 돌아가라고 "예약"
             // (주석과 달리, 이 코드가 *반드시* 필요합니다!)
-            GameData.StageToReload = 3; 
+            // GameData.StageToReload = 3; 
             
             // 2. Core 씬을 로드
-            SceneManager.LoadScene("Core");
+            // SceneManager.LoadScene("Core");
 
             // 3. Additive 방식 함수는 호출하지 않음
             // GameManager.Instance.ReturnToStage4FromEnding(); // (X)
+
+            // Core 씬을 로드하는 대신, GameManager에게 다음 씬(Credit)을 호출
+            if (GameManager.Instance != null)
+            {
+                GameManager.Instance.NextStage();
+            }
+            else
+            {
+                Debug.LogError("GameManager.Instance가 없습니다!");
+            }
         }
     }
 }

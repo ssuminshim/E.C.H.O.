@@ -3385,8 +3385,8 @@ MonoBehaviour:
   - Stage_3
   - Stage_4
   - Memory
-  - Ending
   - Stage_5
+  - Ending
   - Credit
   UIhealth:
   - {fileID: 2478783791266162003}
@@ -3411,8 +3411,10 @@ MonoBehaviour:
   musicStage4: {fileID: 8300000, guid: fb273957e7edc6a4fb4bc7a4449bd241, type: 3}
   musicStage5: {fileID: 8300000, guid: 749428170bd956149a4ede7c65dbb8b6, type: 3}
   musicMemory: {fileID: 8300000, guid: f5014cb6bee765148896a2729ae8f91f, type: 3}
-  musicEnding: {fileID: 0}
+  musicEnding: {fileID: 8300000, guid: f5014cb6bee765148896a2729ae8f91f, type: 3}
   musicCredit: {fileID: 8300000, guid: c38584c2f7da9da44a2c277f1cb756d6, type: 3}
+  defaultWalkSound: {fileID: 8300000, guid: 18e761ff5ef14fd4588d9283fcc9b829, type: 3}
+  stage4WalkSound: {fileID: 8300000, guid: 3bd1b93317b7a3a49b13011cdaa64d0b, type: 3}
   stage4LockedMessage: "\uC6B0\uC120 \uAE30\uC5B5\uBCF4\uAD00\uAE30\uACC4\uB97C \uAC00\uB3D9\uC2DC\uD0A4\uC790."
   stage4Mission_InProgress: "\uCE74\uB4DC\uD0A4\uB97C \uD68D\uB4DD\uD558\uC5EC \uAE30\uC5B5\uBCF4\uAD00\uC7A5\uCE58\uB97C
     \uAC00\uB3D9\uC2DC\uD0A4\uC790."

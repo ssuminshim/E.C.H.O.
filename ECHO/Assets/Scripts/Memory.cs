@@ -65,9 +65,9 @@ public class Memory : MonoBehaviour
             // 마지막 대화가 끝나면 씬 전환
             else
             {
-                // [ ★★★ 이 Debug.Log 추가 ★★★ ]
-                Debug.LogWarning("ENDING씬 로드 직전: GameData.StageToReload = " + GameData.StageToReload);
-                SceneManager.LoadScene("Ending"); // 수민아 여기 씬 이름 "Ending"에서 "Core"로 바꾸면 돼!
+                GameData.HasCompletedMemory = true;
+                GameData.StageToReload = 3;
+                SceneManager.LoadScene("Core"); // 수민아 여기 씬 이름 "Ending"에서 "Core"로 바꾸면 돼!
                 dialogue_count = 0; // 필요 시 초기화
             }
 
