@@ -350,6 +350,10 @@ public class PlayerMove : MonoBehaviour
         // 5. Animator에게 현재 바라보는 방향을 알려줌
         anim.SetBool("isFacingRight", spriteRenderer.flipX);
 
+        anim.SetBool("isWalking", false);
+        anim.SetBool("isJumping", false);
+        anim.SetBool("isClimbing", false);
+
         // 6. 사망 애니메이션 재생
         // (Animator에 "Die"라는 이름의 Trigger를 만들었다고 가정)
         anim.SetTrigger("isDead");

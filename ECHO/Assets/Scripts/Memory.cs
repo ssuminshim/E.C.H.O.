@@ -67,8 +67,7 @@ public class Memory : MonoBehaviour
             {
                 GameData.HasCompletedMemory = true;
                 GameData.StageToReload = 3;
-                SceneManager.LoadScene("Core"); // 수민아 여기 씬 이름 "Ending"에서 "Core"로 바꾸면 돼!
-                dialogue_count = 0; // 필요 시 초기화
+                SceneManager.LoadScene("Core");
             }
 
             if (dialogue_count == 18)

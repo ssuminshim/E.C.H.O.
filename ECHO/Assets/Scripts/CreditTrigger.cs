@@ -17,8 +17,14 @@ public class CreditTrigger : MonoBehaviour
             
             if (cameraPanTarget != null)
             {
-                // GameManager에게 카메라 연출을 시작하라고 명령
+                // 다시 연출 시작 함수를 호출
+                // 이 함수가 내부적으로 연출 후 NextStage()를 부를 것임
                 GameManager.Instance.StartCreditPan(cameraPanTarget);
+            }
+            else
+            {
+                // 만약 타겟이 없다면 그냥 다음 스테이지로 넘어감 (안전장치)
+                GameManager.Instance.NextStage();
             }
             
             // 이 트리거는 비활성화

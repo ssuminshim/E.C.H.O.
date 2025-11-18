@@ -1,85 +1,58 @@
 using UnityEngine;
-using TMPro;
 
 public class Machine : MonoBehaviour
 {
-    // E키 상호작용을 보여줄 UI (선택 사항, 머신 오브젝트의 자식으로 두는 것이 일반적)
-    public GameObject interactionUI; 
+    private bool isPlayerInRange = false; // 플레이어가 범위 안에 있는지
+    private bool isActivated = false;
 
-    private bool playerIsNear = false;
+    // (선택사항) "E키를 누르세요" 안내 UI가 있다면 여기에 연결
+    public GameObject interactionGuideUI; 
 
     void Start()
     {
-        // 시작할 때 UI 숨기기
-        if (interactionUI != null)
-            interactionUI.SetActive(false);
-            
-        // 콜라이더가 IsTrigger인지 확인
-        Collider2D coll = GetComponent<Collider2D>();
-        if (coll == null)
-            Debug.LogError(name + " 머신에 Collider2D가 없습니다!");
-        if (coll != null && !coll.isTrigger)
-            Debug.LogWarning(name + " 머신의 Collider2D가 IsTrigger가 아닙니다. 상호작용을 위해 IsTrigger를 켜야 합니다.");
+        if (interactionGuideUI != null) interactionGuideUI.SetActive(false);
     }
 
     void Update()
     {
-        // 플레이어가 근처에 있을 때만 로직 실행
-        if (playerIsNear)
+        // 1. 플레이어가 범위 안에 있고 + E키를 눌렀을 때
+        if (isPlayerInRange && Input.GetKeyDown(KeyCode.E))
         {
-            // 1. 카드키 3개를 모두 모았는지 GameManager를 통해 실시간으로 확인
-            bool interactionAllowed = GameManager.Instance.IsCardKeyMissionComplete();
-
-            // 2. 상호작용이 가능하고 E키를 눌렀다면
-            if (interactionAllowed && Input.GetKeyDown(KeyCode.E))
-            {
-                InteractWithMachine();
-            }
-
-            // 3. UI 상태 업데이트
-            // 상호작용이 허용될 때만 UI를 켜고, 그렇지 않으면 끔
-            if (interactionUI != null)
-            {
-                // 현재 UI 활성화 상태와 필요한 활성화 상태가 다를 때만 변경
-                if (interactionUI.activeSelf != interactionAllowed)
-                {
-                    interactionUI.SetActive(interactionAllowed);
-                }
-            }
+            TryInteract();
         }
     }
 
-    void InteractWithMachine()
+    void TryInteract()
     {
-        // 1. GameManager의 최종 패널 활성화 함수 호출
-        GameManager.Instance.ActivateCompletionPanel();
+        // 이미 기억을 봤다면 무시
+        if (GameData.HasCompletedMemory) return;
         
-        // 2. 상호작용이 완료되었으므로 이 스크립트 비활성화
-        this.enabled = false; 
-        
-        // 3. UI도 비활성화
-        if (interactionUI != null)
-            interactionUI.SetActive(false);
+        // 이미 활성화(작동) 중이라면 중복 실행 방지
+        if (isActivated) return;
+
+        // GameManager에게 "기계 열어줘" 요청
+        // (카드키 검사는 GameManager가 수행하도록 위임하거나 여기서 해도 됨. 
+        //  여기서는 깔끔하게 GameManager의 새로운 함수를 호출합니다.)
+        GameManager.Instance.TryOpenMachinePanel();
     }
 
-    // 플레이어가 콜라이더 범위에 들어왔을 때
-    void OnTriggerEnter2D(Collider2D other)
+    void OnTriggerEnter2D(Collider2D collision)
     {
-        if (other.CompareTag("Player"))
+        if (collision.CompareTag("Player"))
         {
-            playerIsNear = true;
+            isPlayerInRange = true;
+            if (interactionGuideUI != null && !GameData.HasCompletedMemory) 
+                interactionGuideUI.SetActive(true); // 안내 UI 켜기
         }
     }
 
-    // 플레이어가 콜라이더 범위에서 나갔을 때
-    void OnTriggerExit2D(Collider2D other)
+    void OnTriggerExit2D(Collider2D collision)
     {
-        if (other.CompareTag("Player"))
+        if (collision.CompareTag("Player"))
         {
-            playerIsNear = false;
-            // "E키" UI 끄기
-            if (interactionUI != null)
-                interactionUI.SetActive(false);
+            isPlayerInRange = false;
+            if (interactionGuideUI != null) 
+                interactionGuideUI.SetActive(false); // 안내 UI 끄기
         }
     }
 }

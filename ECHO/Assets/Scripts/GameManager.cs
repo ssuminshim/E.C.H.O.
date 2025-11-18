@@ -86,23 +86,19 @@ public class GameManager : MonoBehaviour
     public AudioClip musicStage4;   // Stage 4에서 쓸 음악
     public AudioClip musicStage5;   // Stage 5에서 쓸 음악
 
-    [Header("Memory/Ending/Credit BGM")] // (인스펙터에서 보기 쉽게)
-    public AudioClip musicMemory;
-    public AudioClip musicEnding;
-    public AudioClip musicCredit;
-
     [Header("Walk Sounds")]
     public AudioClip defaultWalkSound; // 기본 걷는 소리
     public AudioClip stage4WalkSound;  // 스테이지 4 전용 걷는 소리
 
     // [미션 진행도 변수]
     [Header("Mission Settings")] // (인스펙터에서 보기 좋게 제목 추가)
-    public string stage4LockedMessage = "우선 기억보관기계를 가동시키자.";
-    private int cardKeysCollected = 0;
+    public string stage4LockedMessage = "카드키가 더 필요한 것 같다.";
+    public string stage4MachineRequiredMessage = "먼저 기억보관장치를 가동시키자.";    private int cardKeysCollected = 0;
     private int cardKeysNeeded = 3; // Stage 4에서 필요한 카드키 수
     public string stage4Mission_InProgress = "카드키를 획득하여 기억보관장치를 가동시키자.";
     public string stage4Mission_Complete = "카드키를 모두 얻었다. 이제 기억보관장치를 가동시켜보자.";
     public string stage4Mission_Exit = "문 밖으로 나가보자."; // Memory 씬 이후 미션
+    public string stage5Mission = "앞으로 계속 가보자.";
 
     // 머신 상호작용 완료 시 활성화할 패널
     public GameObject machineCompletionPanel;
@@ -393,145 +389,146 @@ public class GameManager : MonoBehaviour
 
     // NextStage 로직을 코루틴으로 분리
     public void NextStage()
-    {
-        // [수정] 씬 변경 중이면 중복 호출 방지
-        if (isChangingStage) return;
-        isChangingStage = true; // (중복 방지 시작)
+    {
+        // [수정] 씬 변경 중이면 중복 호출 방지
+        if (isChangingStage) return;
+        isChangingStage = true; // (중복 방지 시작)
 
-        int nextStageIndex = stageIndex + 1; // 기본적으로 다음 스테이지
+        int nextStageIndex = stageIndex + 1; // 기본적으로 다음 스테이지
 
-        // --- 1. Stage 4 (인덱스 3) 분기 처리 ---
-        if (stageIndex == 3)
-        {
-            if (GameData.HasCompletedMemory == false) // 첫 방문
-            {
-                if (cardKeysCollected < cardKeysNeeded)
-                {
-                    StartCoroutine(ShowItemPopup(stage4LockedMessage));
-                    isChangingStage = false; // (중요) 씬 이동 안 하니 플래그 리셋
-                    return; 
-                }
-                // Memory 씬(index 4)으로 이동
-                nextStageIndex = 4;
-            }
-            else // Memory 완료 후
-            {
-                // Stage 5 (index 5)로 점프
-                nextStageIndex = 5;
-            }
-        }
-        // [ ★ 수정 ★ ] Stage 5 -> Ending (index 5 -> 6)
-        else if (stageIndex == 5)
-        {
-            nextStageIndex = 6;
-        }
+        // --- 1. Stage 4 (인덱스 3) 분기 처리 ---
+        if (stageIndex == 3)
+        {
+            if (GameData.HasCompletedMemory == false) // 첫 방문
+            {
+                if (cardKeysCollected < cardKeysNeeded)
+                {
+                    StartCoroutine(ShowItemPopup(stage4LockedMessage));
+                }
+                else
+                {
+                    StartCoroutine(ShowItemPopup(stage4MachineRequiredMessage));
+                }
+                
+                isChangingStage = false; // (중요) 씬 이동 안 하니 플래그 리셋
+                return;
+            }
+            else // Memory 완료 후
+            {
+                // Stage 5 (index 5)로 점프
+                nextStageIndex = 5;
+            }
+        }
+        // Stage 5 -> Ending (index 5 -> 6)
+        else if (stageIndex == 5)
+        {
+            nextStageIndex = 6;
+        }
 
-        // --- 2. 씬 리스트 범위 확인 ---
-        if (nextStageIndex >= stageSceneNames.Count)
-        {
-            Debug.LogError("다음 스테이지 인덱스가 범위를 벗어났습니다: " + nextStageIndex);
-            isChangingStage = false;
-            return;
-        }
+        // --- 2. 씬 리스트 범위 확인 ---
+        if (nextStageIndex >= stageSceneNames.Count)
+        {
+            Debug.LogError("다음 스테이지 인덱스가 범위를 벗어났습니다: " + nextStageIndex);
+            isChangingStage = false;
+            return;
+        }
 
-        // --- 3. 씬 전환 실행 ---
-        string sceneToLoad = stageSceneNames[nextStageIndex];
+        // --- 3. 씬 전환 실행 ---
+        string sceneToLoad = stageSceneNames[nextStageIndex];
 
-        // [ ★ 수정 ★ ] (2번, 3번 문제 해결)
-        // 'Core' 씬이 필요 없는 씬 (Memory, Ending, Credit)
-        if (nextStageIndex == 4 || nextStageIndex == 6 || nextStageIndex == 7)
-        {
-            Debug.Log(sceneToLoad + " 씬을 'Single' 모드로 로드합니다.");
-            StopMusic(); // Core 씬 BGM 중지 (2번 BGM 겹침 해결)
-            
-            // 돌아와야 할 곳을 저장 (Memory에서만)
-            if (nextStageIndex == 4) 
-                GameData.StageToReload = 3; // (Stage_4)
-            
-            // (3번 Core 씬 안 없어짐 문제 해결)
-            // DontDestroyOnLoad(GameManager)를 제외한 모든 것을 파괴
-            SceneManager.LoadScene(sceneToLoad); 
-        }
-        // 'Core' 씬이 필요한 씬 (Stage_1 -> Stage_2 등)
-        else
-        {
-            Debug.Log(sceneToLoad + " 씬을 'Core 새로고침' 방식으로 로드합니다.");
-            // (1번 맵 겹침 문제 해결)
-            // 1. 다음 스테이지 인덱스를 GameData에 "예약"
-            GameData.StageToReload = nextStageIndex;
-            
-            // 2. 'Core' 씬을 로드
-            SceneManager.LoadScene("Core");
-            // 3. OnSceneLoaded -> InitializeGame이 새 씬을 로드할 것임
-        }
-    }
+        // 'Core' 씬이 필요 없는 씬 (Memory, Ending, Credit)
+        if (nextStageIndex == 4 || nextStageIndex == 6 || nextStageIndex == 7)
+        {
+            Debug.Log(sceneToLoad + " 씬을 'Single' 모드로 로드합니다.");
+            StopMusic(); // Core 씬 BGM 중지 (2번 BGM 겹침 해결)
+            
+            // 돌아와야 할 곳을 저장 (Memory에서만)
+            if (nextStageIndex == 4) 
+                GameData.StageToReload = 3; // (Stage_4)
+            
+            // 'Single' 모드로 로드하기 *전에* stageIndex를 업데이트합니다.
+            // 이렇게 해야 'Ending' 씬(index 6)에서 'NextStage()'를 호출할 때
+            // stageIndex가 6이 되어 'Credit'(index 7)으로 넘어갈 수 있습니다.
+            stageIndex = nextStageIndex; 
 
-    // 씬을 비동기(Async)로 로드/언로드하는 코루틴
-//     IEnumerator ChangeStageRoutine(bool jumpToStage5) 
-//     {
-//         isChangingStage = true;
-//         FreezePlayer(true); 
+            // (3번 Core 씬 안 없어짐 문제 해결)
+            // DontDestroyOnLoad(GameManager)를 제외한 모든 것을 파괴
+            SceneManager.LoadScene(sceneToLoad); 
+        }
+        // 'Core' 씬이 필요한 씬 (Stage_1 -> Stage_2 등)
+        else
+        {
+            Debug.Log(sceneToLoad + " 씬을 'Core 새로고침' 방식으로 로드합니다.");
+            // (1번 맵 겹침 문제 해결)
+            // 1. 다음 스테이지 인덱스를 GameData에 "예약"
+            GameData.StageToReload = nextStageIndex;
+            
+            // 2. 'Core' 씬을 로드
+            SceneManager.LoadScene("Core");
+            // 3. OnSceneLoaded -> InitializeGame이 새 씬을 로드할 것임
+        }
+    }
 
-//         try 
-//         {
-//             // 1. 현재 씬 언로드
-//             AsyncOperation asyncUnload = null;
-//             if (stageIndex >= 0 && stageIndex < stageSceneNames.Count && !string.IsNullOrEmpty(stageSceneNames[stageIndex]))
-//             {
-//                 Scene currentScene = SceneManager.GetSceneByName(stageSceneNames[stageIndex]);
-//                 if (currentScene.IsValid())
-//                 {
-//                     asyncUnload = SceneManager.UnloadSceneAsync(currentScene);
-//                     Debug.Log(currentScene.name + " 씬을 언로드합니다.");
-//                 }
-//                 else { Debug.LogWarning(stageSceneNames[stageIndex] + " 씬을 찾지 못해 언로드에 실패했습니다."); }
-//                 currentStage = null; 
-//             }
+    // 플레이어의 조작만 가볍게 잠그거나 푸는 함수
+    public void SetPlayerLock(bool isLocked)
+    {
+        if (player == null) return;
 
-//             // 2. 언로드가 끝날 때까지 기다림
-//             while (asyncUnload != null && !asyncUnload.isDone) { yield return null; }
+        // 스크립트를 끄면 Update(키 입력)가 멈춤
+        player.enabled = !isLocked; 
 
-//             // 3. 인덱스 계산
-//             if (jumpToStage5) { stageIndex = 5; }
-//             else { stageIndex++; }
+        if (isLocked)
+        {
+            player.VelocityZero(); // 미끄러짐 방지 (PlayerMove에 있는 함수)
+            // 걷는 애니메이션도 멈추고 싶다면 아래 코드 추가
+            player.GetComponent<Animator>().SetBool("isWalking", false);
+        }
+    }
 
-//             // 4. 다음 씬 로드
-//             AsyncOperation asyncLoad = SceneManager.LoadSceneAsync(stageSceneNames[stageIndex], LoadSceneMode.Additive);
-//             while (!asyncLoad.isDone) { yield return null; }
+    // 기계가 호출하는 씬 이동 함수 (성공 시)
+    public void EnterMemoryScene()
+    {
+        if (isChangingStage) return;
 
-//             yield return null; // 5. Stage.cs 대기
+        // (혹시 모르니 패널 닫기)
+        if (machineCompletionPanel != null) machineCompletionPanel.SetActive(false);
 
-//             // 6. Stage.cs 등록 확인
-//             float waitTimer = 0f;
-//             while (currentStage == null)
-//             {
-//                 if (waitTimer > 3.0f) 
-//                 {
-//                     Debug.LogError(stageSceneNames[stageIndex] + " 씬에 Stage.cs가 없거나 등록에 실패했습니다!");
-//                     break; // 루프 탈출
-//                 }
-//                 waitTimer += Time.deltaTime;
-//                 yield return null;
-//             }
+        isChangingStage = true;
+        
+        // 플레이어는 이미 잠겨있겠지만 확실하게 한 번 더 잠금
+        SetPlayerLock(true); 
 
-//             // 7. UI 및 미션 갱신
-//             if (UIStage != null) UIStage.text = "STAGE " + (stageIndex + 1);
-//             SetupMissionForStage(stageIndex); 
-//             if (mainCamera != null) mainCamera.GetComponent<CameraClamp>()?.FindNewBoundary();
-//         
-//             // 8. 플레이어 재배치
-//             PlayerReposition();
-//         }
-//         finally 
-//         {
-//             // 9. 무조건 플레이어 얼음 해제 (플레이어가 숨겨져 있어도 괜찮음)
-//             FreezePlayer(false); 
-//         }
+        Debug.Log("로그인 성공! Memory 씬으로 이동합니다.");
 
-//         // 10. 중복 호출 방지
-//         yield return new WaitForSeconds(0.1f); 
-//         isChangingStage = false;
-//     }
+        StopMusic(); 
+        GameData.StageToReload = 3; 
+        SceneManager.LoadScene(stageSceneNames[4]); 
+    }
+
+    // 기계 상호작용 실패(카드키 부족) 시 호출할 함수
+    public void OnMachineInteractionFailed(string message)
+    {
+        // 코루틴으로 얼림 -> 대기 -> 해제 처리
+        StartCoroutine(MachineFailedRoutine(message));
+    }
+
+    // 실패 연출 코루틴
+    IEnumerator MachineFailedRoutine(string message)
+    {
+        // 1. 플레이어 얼리기
+        SetPlayerLock(true);
+
+        // 2. 팝업 띄우기 (기존 UI 활용)
+        itemPopupText.text = message;
+        itemPopupPanel.SetActive(true);
+
+        // 3. 2초 대기
+        yield return new WaitForSeconds(2.0f);
+
+        // 4. 팝업 끄고 플레이어 녹이기
+        itemPopupPanel.SetActive(false);
+        SetPlayerLock(false);
+    }
 
     public void HealthDown()
     {
@@ -768,7 +765,7 @@ public class GameManager : MonoBehaviour
     void SetupMissionForStage(int index)
     {
         AudioClip clipToPlay = null;
-        bool showPlayerAndUI = true; // [수정] 기본값은 '보여줌'
+        bool showPlayerAndUI = true; // 기본값은 '보여줌'
 
         // 8개 씬 리스트 순서에 맞춘 BGM 및 미션
         switch (index)
@@ -795,7 +792,7 @@ public class GameManager : MonoBehaviour
                 break;
             case 5: // Stage_5
                 clipToPlay = musicStage5;
-                UIMissionText.text = ""; 
+                UIMissionText.text = stage5Mission; 
                 break;
             case 6: // Ending
                 clipToPlay = null; // [수정] Ending 씬이 자체 BGM을 재생
@@ -953,40 +950,52 @@ public class GameManager : MonoBehaviour
 
     IEnumerator PanToCreditsRoutine(Transform target)
     {
-        // 1. 플레이어 조작을 막음
-        isDead = true;
-        player.enabled = false; // PlayerMove.cs 스크립트 자체를 비활성화
+        // 1. 플레이어 조작 및 물리 정지
+        SetPlayerLock(true);
 
-        // 2. 카메라가 플레이어를 따라다니는 것을 멈춤
-        // (true를 전달하여 월드 좌표를 유지한 채 부모-자식 관계만 해제)
+        // 카메라가 플레이어를 따라다니게 하는 스크립트(CameraClamp)를 끕니다.
+        if (mainCamera != null)
+        {
+            // CameraClamp 라는 이름의 스크립트를 쓴다고 가정 (코드 상단 변수 참고함)
+            var clampScript = mainCamera.GetComponent<CameraClamp>();
+            if (clampScript != null)
+            {
+                clampScript.enabled = false;
+            }
+        }
+
+        // 2. 카메라 부모 해제 (유지)
         mainCamera.transform.SetParent(null, true);
 
-        // 3. 카메라를 'CreditCameraTarget'으로 패닝(이동)
+        // 3. 카메라 패닝 (유지)
         float timer = 0f;
         Vector3 startCamPos = mainCamera.transform.position;
         Vector3 targetCamPos = new Vector3(
             target.position.x,
             target.position.y,
-            startCamPos.z // Z축은 그대로 유지
+            startCamPos.z 
         );
 
         while (timer < creditPanDuration)
         {
             float t = timer / creditPanDuration;
-            mainCamera.transform.position = Vector3.Lerp(startCamPos, targetCamPos, t * t);
+            // 부드러운 움직임 (Ease Out)
+            float smoothT = t * t * (3f - 2f * t); 
+            mainCamera.transform.position = Vector3.Lerp(startCamPos, targetCamPos, smoothT);
+            
             timer += Time.deltaTime;
             yield return null;
         }
 
-        // 4. 패닝 완료 후 잠시 대기
-        yield return new WaitForSeconds(1.0f);
+        // 확실하게 목표 지점에 도달
+        mainCamera.transform.position = targetCamPos;
 
-        // 5. Stage 5 씬을 언로드 (제거)
-        SceneManager.UnloadSceneAsync(stageSceneNames[stageIndex]); // stageIndex는 4 (Stage 5)
-        
-        // 6. "Credit" 씬을 Additive(추가) 모드로 로드
-        //    (Core 씬과 카메라가 파괴되지 않음)
-        SceneManager.LoadSceneAsync("Credit", LoadSceneMode.Additive);
+        // 4. 잠시 대기 후 씬 전환
+        yield return new WaitForSeconds(0.8f);
+
+        // 5. 다음 스테이지(Ending)로 이동
+        // (Ending 씬은 Single 모드이므로, 이 카메라가 파괴되고 Ending 씬의 새 카메라가 나옵니다)
+        NextStage(); 
     }
 
     // LoadStageAdditive 코루틴
@@ -1079,16 +1088,24 @@ public class GameManager : MonoBehaviour
     // 씬이 로드되었을 때 SceneManager가 호출하는 함수
     void OnSceneLoaded(Scene scene, LoadSceneMode mode)
     {
-        // [수정] 'Core' 씬이고, 'Start' 함수가 *이미 한 번 실행된 후* (부활/이동 시)
-        if (scene.name == "Core" && isGameInitialized)
-        {
-            Debug.LogWarning("GameManager가 Core 씬 로드를 감지했습니다. (부활/이동)");
-            InitializeGame();
-        }
-        else if (scene.name == "Core" && !isGameInitialized)
-        {
-            Debug.Log("GameManager가 *최초* Core 씬 로드를 감지했습니다. (Start가 처리할 것임)");
-        }
+        // Core 씬일 때만 초기화를 진행
+        if (scene.name == "Core")
+        {
+            if (isGameInitialized)
+            {
+                Debug.LogWarning("GameManager가 Core 씬 재로드를 감지했습니다. (부활/이동)");
+                InitializeGame();
+            }
+            else
+            {
+                Debug.Log("GameManager가 최초 Core 씬 로드를 감지했습니다.");
+            }
+        }
+        // [추가] 만약 Memory, Ending, Credit 씬이라면 음악을 확실하게 끔
+        else if (scene.name == "Memory" || scene.name == "Ending" || scene.name == "Credit")
+        {
+             StopMusic();
+        }
     }
 
     // GameManager가 파괴될 때 호출됨 (메모리 누수 방지)
@@ -1128,5 +1145,24 @@ public class GameManager : MonoBehaviour
             player.Respawn(); 
         }
     }
+
+    // Machine.cs에서 E키를 눌렀을 때 호출하는 함수
+    public void TryOpenMachinePanel()
+    {
+        // 카드키 부족하면 실패 처리
+        if (cardKeysCollected < cardKeysNeeded)
+        {
+            OnMachineInteractionFailed(stage4LockedMessage);
+            return;
+        }
+
+        // 카드키 충분하면 -> 플레이어 멈추고 패널 열기
+        SetPlayerLock(true); // 플레이어 조작 잠금
+        
+        if (machineCompletionPanel != null)
+        {
+            machineCompletionPanel.SetActive(true);
+        }
+    }
 
 }

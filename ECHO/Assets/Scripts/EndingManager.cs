@@ -1,33 +1,25 @@
 using UnityEngine;
-using UnityEngine.SceneManagement;
+// SceneManager는 이제 GameManager가 처리하므로 필요 없지만, 비상용으로 남겨둡니다.
+using UnityEngine.SceneManagement; 
 
-// 스크립트의 클래스 이름은 실제 파일 이름과 일치해야 함
 public class EndingScenario : MonoBehaviour 
 {
-    // Start() 함수는 비워둠
-    void Start()
+
+    // Finish 버튼의 OnClick 이벤트에 연결할 함수
+    public void OnFinishButtonClicked()
     {
-        
+        Debug.Log("크레딧으로 이동합니다.");
+
+        if (GameManager.Instance != null)
+        {
+            // GameManager에게 다음 스테이지(Credit)로 넘겨달라고 요청함
+            // (아까 NextStage 함수를 고쳤으므로, Ending -> Credit으로 잘 넘어감)
+            GameManager.Instance.NextStage();
+        }
+        else
+        {
+            // 비상용: GameManager가 없을 경우 직접 로드
+            SceneManager.LoadScene("Credit");
+        }
     }
-
-    // Update 함수만 남겨두고, 스페이스바를 누를 때만 작동하게 함
-    void Update()
-    {
-        // 엔딩 연출이 끝나고 (또는 아무때나) 스페이스바를 누르면
-        if (Input.GetKeyDown(KeyCode.Space))
-        {
-            // 1. GameData에 Stage 4 (인덱스 3)로 돌아가라고 "예약"
-            // (주석과 달리, 이 코드가 *반드시* 필요합니다!)
-            // GameData.StageToReload = 3; 
-            
-            // 2. Core 씬을 로드
-            // SceneManager.LoadScene("Core");
-
-            // 3. Additive 방식 함수는 호출하지 않음
-            // GameManager.Instance.ReturnToStage4FromEnding(); // (X)
-
-            // GameManager가 아닌, SceneManager로 "Credit" 씬을 직접 로드
-            SceneManager.LoadScene("Credit");
-        }
-    }
 }
