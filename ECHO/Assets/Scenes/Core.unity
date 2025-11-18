@@ -3543,7 +3543,7 @@ MonoBehaviour:
   audioDamaged: {fileID: 8300000, guid: 7e9ee6dc04a5d40d1a5dfc4beb9865e7, type: 3}
   audioItem: {fileID: 8300000, guid: 79180f511d89441b9aa23ccae1992fe0, type: 3}
   audioDie: {fileID: 8300000, guid: 0c4726bd3866ab840a1cf5b807849c4f, type: 3}
-  audioFinish: {fileID: 8300000, guid: 7478151cf36724a7dada558f746c3633, type: 3}
+  audioFinish: {fileID: 8300000, guid: 8b4e405a508185e428652ccc26469d53, type: 3}
   maxSpeed: 3.5
   jumpPower: 10
   ladderXThreshold: 0.5

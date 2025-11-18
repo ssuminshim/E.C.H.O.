@@ -26,15 +26,8 @@ public class EndingScenario : MonoBehaviour
             // 3. Additive 방식 함수는 호출하지 않음
             // GameManager.Instance.ReturnToStage4FromEnding(); // (X)
 
-            // Core 씬을 로드하는 대신, GameManager에게 다음 씬(Credit)을 호출
-            if (GameManager.Instance != null)
-            {
-                GameManager.Instance.NextStage();
-            }
-            else
-            {
-                Debug.LogError("GameManager.Instance가 없습니다!");
-            }
+            // GameManager가 아닌, SceneManager로 "Credit" 씬을 직접 로드
+            SceneManager.LoadScene("Credit");
         }
     }
 }

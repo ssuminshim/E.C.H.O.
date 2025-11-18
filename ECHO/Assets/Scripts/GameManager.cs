@@ -46,6 +46,7 @@ public class GameManager : MonoBehaviour
     private Rigidbody2D playerRigidbody;
 
     private bool isChangingStage = false;
+    private bool isGameInitialized = false; // 'Start'가 실행되었는지 확인
 
     // GameObject 배열 대신 씬 이름 리스트로 변경
     public List<string> stageSceneNames = new List<string>();
@@ -119,12 +120,12 @@ public class GameManager : MonoBehaviour
         InitializeGame();
     }
 
-    // GameManager의 핵심 로직을 초기화합니다.
-    // Start()에서 처음 실행되고, Core 씬이 로드될 때마다 다시 실행됩니다.
+    // GameManager의 핵심 로직을 초기화함
+    // Start()에서 처음 실행되고, Core 씬이 로드될 때마다 다시 실행됨
     void InitializeGame()
     {
-        // 1. 카메라 참조를 새로 찾음 ('유령' 참조 방지)
-        mainCamera = null; // '유령' 참조를 강제로 null로 만듦
+        // 1. 카메라 참조를 새로 찾음 ('유령' 참조 방지)
+        mainCamera = null; 
         GameObject cameraObj = GameObject.FindWithTag("MainCamera");
         if (cameraObj != null)
             mainCamera = cameraObj.GetComponent<Camera>();
@@ -137,38 +138,34 @@ public class GameManager : MonoBehaviour
         // 3. 모든 상태 리셋
         isDead = false; 
         isInactive = false;
+        isChangingStage = false; // [중요] 2번 문제(안 넘어감) 해결
         inactivityTimer = 0f;
         Time.timeScale = 1f; 
 
-        // 4. 팝업 UI 끄기
-        if (inactivityPopup != null)
-            inactivityPopup.SetActive(false);
-        if (itemPopupPanel != null)
-            itemPopupPanel.SetActive(false); 
-        if (UIMissionText != null)
-            UIMissionText.text = "";
-        if (machineCompletionPanel != null)
-            machineCompletionPanel.SetActive(false);
+        // ... (4. 팝업 UI 끄기 - 생략) ...
+        if (inactivityPopup != null) inactivityPopup.SetActive(false);
+        if (itemPopupPanel != null) itemPopupPanel.SetActive(false); 
+        if (UIMissionText != null) UIMissionText.text = "";
+        if (machineCompletionPanel != null) machineCompletionPanel.SetActive(false);
 
         // 5. GameData를 읽어 로드할 스테이지 결정
-        if (GameData.StageToReload < 0) 
-        {
-            stageIndex = 0; 
-        }
-        else 
-        {
-            stageIndex = GameData.StageToReload;
-        }
+        if (GameData.StageToReload < 0) { stageIndex = 0; }
+        else { stageIndex = GameData.StageToReload; }
         GameData.StageToReload = -1; 
 
-        // 6. UI 텍스트 설정 (FindAndAssignUI 이후에 호출)
+        // 6. UI 텍스트 설정
         if (UIStage != null) 
             UIStage.text = "STAGE " + (stageIndex + 1);
-        else
-            Debug.LogError("InitializeGame: UIStage가 null이라 텍스트를 설정할 수 없습니다.");
+        else
+            Debug.LogError("InitializeGame: UIStage가 null이라 텍스트를 설정할 수 없습니다.");
 
         // 7. 스테이지 로드 코루틴 실행
         StartCoroutine(LoadInitialStage());
+        
+        // [ ★★★ 수정 ★★★ ]
+        // 8. (1번 맵 겹침 문제 해결) 
+        // 모든 초기화가 끝났으므로, "초기화됨" 플래그를 true로 설정
+        isGameInitialized = true; 
     }
 
     // 씬이 다시 로드될 때 깨진 UI 참조(Health, Mission 등)를
@@ -179,14 +176,14 @@ public class GameManager : MonoBehaviour
         GameObject uiRoot = GameObject.FindWithTag("GameUI");
         if (uiRoot == null)
         {
-            Debug.LogError("GameManager가 'GameUI' 태그를 가진 Canvas를 찾지 못했습니다! Core 씬의 Canvas에 'GameUI' 태그를 설정했는지 확인하세요!");
+            Debug.LogError("GameManager가 'GameUI' 태그를 가진 Canvas를 찾지 못했습니다!");
             return;
         }
 
         // 최상위 캔버스 할당
         gameUIRoot = uiRoot;
 
-        // 2. UI 참조를 '안전하게' 다시 찾습니다.
+        // 2. UI 참조를 '안전하게' 다시 찾음
         Transform tempT; // 임시 Transform 변수
 
         // 하트 UI 초기화
@@ -207,7 +204,7 @@ public class GameManager : MonoBehaviour
         if (tempT == null) Debug.LogError("GameUI에서 'Health3' 오브젝트를 찾지 못했습니다!");
         else UIhealth[2] = tempT.GetComponent<Image>();
 
-        // (주의: "StageText"는 캔버스 자식 오브젝트의 실제 이름이어야 합니다.)
+        // (주의: "StageText"는 캔버스 자식 오브젝트의 실제 이름이어야 함)
         tempT = uiRoot.transform.Find("Stage"); 
         if (tempT == null) Debug.LogError("GameUI에서 'Stage' 오브젝트를 찾지 못했습니다!");
         else UIStage = tempT.GetComponent<TMP_Text>();
@@ -263,7 +260,7 @@ public class GameManager : MonoBehaviour
         
         // 1. 'player' 변수를 새로 등록된 플레이어로 설정
         player = newPlayer;
-        // [ ★★★ 수정 ★★★ ] Rigidbody도 새로고침
+        // Rigidbody도 새로고침
         if (player != null)
             playerRigidbody = player.GetComponent<Rigidbody2D>();
 
@@ -312,11 +309,10 @@ public class GameManager : MonoBehaviour
             yield return null; // 로드 완료까지 대기
         }
 
-        // [ ★★★ 수정 ★★★ ]
-        // 씬 로드 완료! Stage.cs의 Start()가 실행될 시간을 1프레임 줍니다.
+        // 씬 로드 완료
         yield return null; 
 
-        // 3. 이제 Stage.cs가 등록되었는지 확인
+        // 3. Stage.cs가 등록되었는지 확인
         float waitTimer = 0f;
         while (currentStage == null)
         {
@@ -396,111 +392,146 @@ public class GameManager : MonoBehaviour
     }
 
     // NextStage 로직을 코루틴으로 분리
-    public void NextStage()
+    public void NextStage()
     {
+        // [수정] 씬 변경 중이면 중복 호출 방지
         if (isChangingStage) return;
+        isChangingStage = true; // (중복 방지 시작)
 
-        // 1. Stage 4 (인덱스 3)이고, *아직* Memory 씬을 완료하지 않았다면
-        if (stageIndex == 3 && GameData.HasCompletedMemory == false) 
+        int nextStageIndex = stageIndex + 1; // 기본적으로 다음 스테이지
+
+        // --- 1. Stage 4 (인덱스 3) 분기 처리 ---
+        if (stageIndex == 3)
         {
-            if (cardKeysCollected < cardKeysNeeded)
+            if (GameData.HasCompletedMemory == false) // 첫 방문
             {
-                StartCoroutine(ShowItemPopup(stage4LockedMessage));
-                return; 
+                if (cardKeysCollected < cardKeysNeeded)
+                {
+                    StartCoroutine(ShowItemPopup(stage4LockedMessage));
+                    isChangingStage = false; // (중요) 씬 이동 안 하니 플래그 리셋
+                    return; 
+                }
+                // Memory 씬(index 4)으로 이동
+                nextStageIndex = 4;
+            }
+            else // Memory 완료 후
+            {
+                // Stage 5 (index 5)로 점프
+                nextStageIndex = 5;
             }
         }
-        // 3. Stage 4 (인덱스 3)이고, *이미* Memory 씬을 완료했다면
-        else if (stageIndex == 3 && GameData.HasCompletedMemory == true)
+        // [ ★ 수정 ★ ] Stage 5 -> Ending (index 5 -> 6)
+        else if (stageIndex == 5)
         {
-            // 4. (성공) Stage 5 (새 인덱스 5)으로 "점프"
-            Debug.Log("Stage4 -> Stage5 (인덱스 5)으로 점프합니다.");
-            
-            // 'jumpToStage5' 플래그를 true로 넘깁니다.
-            StartCoroutine(ChangeStageRoutine(true)); // (true = 점프)
-            return; 
+            nextStageIndex = 6;
         }
-        
-        // 6. 그 외의 경우 (Stage1->2, Stage2->3, Stage4->Memory 등)
-        if (stageIndex < stageSceneNames.Count - 1)
+
+        // --- 2. 씬 리스트 범위 확인 ---
+        if (nextStageIndex >= stageSceneNames.Count)
         {
-            StartCoroutine(ChangeStageRoutine(false)); // (false = 점프 아님)
+            Debug.LogError("다음 스테이지 인덱스가 범위를 벗어났습니다: " + nextStageIndex);
+            isChangingStage = false;
+            return;
+        }
+
+        // --- 3. 씬 전환 실행 ---
+        string sceneToLoad = stageSceneNames[nextStageIndex];
+
+        // [ ★ 수정 ★ ] (2번, 3번 문제 해결)
+        // 'Core' 씬이 필요 없는 씬 (Memory, Ending, Credit)
+        if (nextStageIndex == 4 || nextStageIndex == 6 || nextStageIndex == 7)
+        {
+            Debug.Log(sceneToLoad + " 씬을 'Single' 모드로 로드합니다.");
+            StopMusic(); // Core 씬 BGM 중지 (2번 BGM 겹침 해결)
+            
+            // 돌아와야 할 곳을 저장 (Memory에서만)
+            if (nextStageIndex == 4) 
+                GameData.StageToReload = 3; // (Stage_4)
+            
+            // (3번 Core 씬 안 없어짐 문제 해결)
+            // DontDestroyOnLoad(GameManager)를 제외한 모든 것을 파괴
+            SceneManager.LoadScene(sceneToLoad); 
+        }
+        // 'Core' 씬이 필요한 씬 (Stage_1 -> Stage_2 등)
+        else
+        {
+            Debug.Log(sceneToLoad + " 씬을 'Core 새로고침' 방식으로 로드합니다.");
+            // (1번 맵 겹침 문제 해결)
+            // 1. 다음 스테이지 인덱스를 GameData에 "예약"
+            GameData.StageToReload = nextStageIndex;
+            
+            // 2. 'Core' 씬을 로드
+            SceneManager.LoadScene("Core");
+            // 3. OnSceneLoaded -> InitializeGame이 새 씬을 로드할 것임
         }
     }
 
     // 씬을 비동기(Async)로 로드/언로드하는 코루틴
-    IEnumerator ChangeStageRoutine(bool jumpToStage5) 
-    {
-        isChangingStage = true;
-        FreezePlayer(true); 
+//     IEnumerator ChangeStageRoutine(bool jumpToStage5) 
+//     {
+//         isChangingStage = true;
+//         FreezePlayer(true); 
 
-        // 3. 현재 스테이지 씬을 언로드
-        AsyncOperation asyncUnload = null;
-        if (stageIndex >= 0 && stageIndex < stageSceneNames.Count && !string.IsNullOrEmpty(stageSceneNames[stageIndex]))
-        {
-            // [ ★ 수정 ★ ] (1번 맵 겹침 문제 해결)
-            // 이름(string) 대신 로드된 씬(Scene) 객체로 언로드
-            Scene currentScene = SceneManager.GetSceneByName(stageSceneNames[stageIndex]);
-            if (currentScene.IsValid())
-            {
-                asyncUnload = SceneManager.UnloadSceneAsync(currentScene);
-                Debug.Log(currentScene.name + " 씬을 언로드합니다.");
-            }
-            else
-            {
-                Debug.LogWarning(stageSceneNames[stageIndex] + " 씬을 찾지 못해 언로드에 실패했습니다. (이름 확인 필요)");
-            }
-            currentStage = null; 
-        }
+//         try 
+//         {
+//             // 1. 현재 씬 언로드
+//             AsyncOperation asyncUnload = null;
+//             if (stageIndex >= 0 && stageIndex < stageSceneNames.Count && !string.IsNullOrEmpty(stageSceneNames[stageIndex]))
+//             {
+//                 Scene currentScene = SceneManager.GetSceneByName(stageSceneNames[stageIndex]);
+//                 if (currentScene.IsValid())
+//                 {
+//                     asyncUnload = SceneManager.UnloadSceneAsync(currentScene);
+//                     Debug.Log(currentScene.name + " 씬을 언로드합니다.");
+//                 }
+//                 else { Debug.LogWarning(stageSceneNames[stageIndex] + " 씬을 찾지 못해 언로드에 실패했습니다."); }
+//                 currentStage = null; 
+//             }
 
-        // 4. 씬 언로드가 끝날 때까지 기다림
-        while (asyncUnload != null && !asyncUnload.isDone)
-        {
-            yield return null;
-        }
+//             // 2. 언로드가 끝날 때까지 기다림
+//             while (asyncUnload != null && !asyncUnload.isDone) { yield return null; }
 
-        // 5. 인덱스 계산 (3번 씬 언로드 문제 해결)
-        if (jumpToStage5)
-        {
-            stageIndex = 5; // "Stage_5" 씬의 인덱스(5)로 강제 점프
-        }
-        else
-        {
-            stageIndex++; // 일반적인 다음 스테이지
-        }
+//             // 3. 인덱스 계산
+//             if (jumpToStage5) { stageIndex = 5; }
+//             else { stageIndex++; }
 
-        // 6. 다음 씬 로드
-        AsyncOperation asyncLoad = SceneManager.LoadSceneAsync(stageSceneNames[stageIndex], LoadSceneMode.Additive);
-        while (!asyncLoad.isDone) { yield return null; }
+//             // 4. 다음 씬 로드
+//             AsyncOperation asyncLoad = SceneManager.LoadSceneAsync(stageSceneNames[stageIndex], LoadSceneMode.Additive);
+//             while (!asyncLoad.isDone) { yield return null; }
 
-        yield return null; // 7. Stage.cs 대기
+//             yield return null; // 5. Stage.cs 대기
 
-        // 8. Stage.cs 등록 확인 (3번 무한 추락 문제 해결)
-        float waitTimer = 0f;
-        while (currentStage == null)
-        {
-            if (waitTimer > 3.0f) 
-            {
-                Debug.LogError(stageSceneNames[stageIndex] + " 씬에 Stage.cs가 없거나 등록에 실패했습니다! (2단계 확인 필요)");
-                FreezePlayer(false); 
-                yield break; 
-            }
-            waitTimer += Time.deltaTime;
-            yield return null;
-        }
+//             // 6. Stage.cs 등록 확인
+//             float waitTimer = 0f;
+//             while (currentStage == null)
+//             {
+//                 if (waitTimer > 3.0f) 
+//                 {
+//                     Debug.LogError(stageSceneNames[stageIndex] + " 씬에 Stage.cs가 없거나 등록에 실패했습니다!");
+//                     break; // 루프 탈출
+//                 }
+//                 waitTimer += Time.deltaTime;
+//                 yield return null;
+//             }
 
-        // 9. UI 및 미션 갱신
-        if (UIStage != null) UIStage.text = "STAGE " + (stageIndex + 1);
-        SetupMissionForStage(stageIndex); // (2번 BGM 문제 해결)
-        if (mainCamera != null) mainCamera.GetComponent<CameraClamp>()?.FindNewBoundary();
-  
-        // 10. 플레이어 재배치 및 활성화
-        PlayerReposition();
-        FreezePlayer(false);
+//             // 7. UI 및 미션 갱신
+//             if (UIStage != null) UIStage.text = "STAGE " + (stageIndex + 1);
+//             SetupMissionForStage(stageIndex); 
+//             if (mainCamera != null) mainCamera.GetComponent<CameraClamp>()?.FindNewBoundary();
+//         
+//             // 8. 플레이어 재배치
+//             PlayerReposition();
+//         }
+//         finally 
+//         {
+//             // 9. 무조건 플레이어 얼음 해제 (플레이어가 숨겨져 있어도 괜찮음)
+//             FreezePlayer(false); 
+//         }
 
-        // [수정] 11. (1번 맵 겹침 문제 해결) 중복 호출 방지
-        yield return new WaitForSeconds(0.1f);
-        isChangingStage = false;
-    }
+//         // 10. 중복 호출 방지
+//         yield return new WaitForSeconds(0.1f); 
+//         isChangingStage = false;
+//     }
 
     public void HealthDown()
     {
@@ -737,80 +768,86 @@ public class GameManager : MonoBehaviour
     void SetupMissionForStage(int index)
     {
         AudioClip clipToPlay = null;
+        bool showPlayerAndUI = true; // [수정] 기본값은 '보여줌'
 
-        // Stage 1 (index 0) 또는 Stage 2 (index 1)
-        if (index == 0 || index == 1)
+        // 8개 씬 리스트 순서에 맞춘 BGM 및 미션
+        switch (index)
         {
-            clipToPlay = musicStage1_2;
-            UIMissionText.text = ""; 
-        }
-        // Stage 3 (index 2)
-        else if (index == 2)
-        {
-            clipToPlay = musicStage3;
-            UIMissionText.text = ""; 
-        }
-        // Stage 4 (index 3)
-        else if (index == 3)
-        {
-            clipToPlay = musicStage4;
-            
-            // (기존 미션 로직...)
-            if (GameData.HasCompletedMemory) { UIMissionText.text = stage4Mission_Exit; }
-            else if (cardKeysCollected >= cardKeysNeeded) { UIMissionText.text = stage4Mission_Complete; }
-            else { UIMissionText.text = stage4Mission_InProgress; }
-        }
-        // Memory (index 4)
-        else if (index == 4)
-        {
-            clipToPlay = musicMemory; 
-            UIMissionText.text = ""; 
-        }
-        // Stage 5 (index 5)
-        else if (index == 5)
-        {
-            clipToPlay = musicStage5;
-            UIMissionText.text = ""; 
-        }
-        // Ending (index 6)
-        else if (index == 6)
-        {
-            clipToPlay = musicEnding; // (musicEnding 대신 musicMemory 할당)
-            UIMissionText.text = ""; 
-        }
-        // Credit (index 7)
-        else if (index == 7)
-        {
-            clipToPlay = musicCredit;
-            UIMissionText.text = "";
-        }
-        else
-        {
-            UIMissionText.text = "";
+            case 0: // Stage_1
+            case 1: // Stage_2
+                clipToPlay = musicStage1_2;
+                UIMissionText.text = ""; 
+                break;
+            case 2: // Stage_3
+                clipToPlay = musicStage3;
+                UIMissionText.text = ""; 
+                break;
+            case 3: // Stage_4
+                clipToPlay = musicStage4;
+                if (GameData.HasCompletedMemory) { UIMissionText.text = stage4Mission_Exit; }
+                else if (cardKeysCollected >= cardKeysNeeded) { UIMissionText.text = stage4Mission_Complete; }
+                else { UIMissionText.text = stage4Mission_InProgress; }
+                break;
+            case 4: // Memory
+                clipToPlay = null; // [수정] Memory 씬이 자체 BGM을 재생
+                UIMissionText.text = ""; 
+                showPlayerAndUI = false; // [수정] 플레이어와 UI 숨김
+                break;
+            case 5: // Stage_5
+                clipToPlay = musicStage5;
+                UIMissionText.text = ""; 
+                break;
+            case 6: // Ending
+                clipToPlay = null; // [수정] Ending 씬이 자체 BGM을 재생
+                UIMissionText.text = ""; 
+                showPlayerAndUI = false; // [수정] 플레이어와 UI 숨김
+                break;
+            case 7: // Credit
+                clipToPlay = null; // [수정] Credit 씬이 자체 BGM을 재생
+                UIMissionText.text = "";
+                showPlayerAndUI = false; // [수정] 플레이어와 UI 숨김
+                break;
+            default:
+                UIMissionText.text = "";
+                break;
         }
 
-        if (player != null) // (GameManager가 Player를 참조하고 있는지 확인)
+        // 걷는 소리 설정
+        if (player != null)
         {
-            // Index 3 = Stage 4 (새 씬 리스트 순서 기준)
-            if (index == 3) 
+            if (index == 3) // Stage 4
             {
-                // 스테이지 4 소리가 할당되었다면
-                if (stage4WalkSound != null)
-                    player.audioWalk = stage4WalkSound;
+                if (stage4WalkSound != null) player.audioWalk = stage4WalkSound;
             }
-            else // 그 외 모든 스테이지
+            else // 그 외
             {
-                // 기본 걷는 소리가 할당되었다면
-                if (defaultWalkSound != null)
-                    player.audioWalk = defaultWalkSound;
+                if (defaultWalkSound != null) player.audioWalk = defaultWalkSound;
             }
         }
 
-        // [음악 재생 로직]
-        if (clipToPlay != null && (bgmPlayer.clip != clipToPlay || !bgmPlayer.isPlaying))
+        // BGM 재생/중지
+        if (clipToPlay != null) // 재생할 BGM이 있다면
         {
-            bgmPlayer.clip = clipToPlay; // 음악 교체
-            bgmPlayer.Play(); // 재생
+            if (bgmPlayer.clip != clipToPlay || !bgmPlayer.isPlaying)
+            {
+                bgmPlayer.clip = clipToPlay;
+                bgmPlayer.Play();
+            }
+        }
+        else // 재생할 BGM이 없다면 (Memory, Ending, Credit)
+        {
+            bgmPlayer.Stop(); // [수정] (2번 BGM 겹침 문제 해결)
+        }
+
+        // [ ★ 수정 ★ ] (3번 Core 씬 안 없어짐 문제 해결)
+        // 플레이어와 UI를 켜거나 끔
+        if (player != null && player.gameObject != null)
+        {
+            player.gameObject.SetActive(showPlayerAndUI);
+        }
+        if (gameUIRoot != null)
+        {
+            gameUIRoot.SetActive(showPlayerAndUI);
         }
     }
 
@@ -1042,13 +1079,16 @@ public class GameManager : MonoBehaviour
     // 씬이 로드되었을 때 SceneManager가 호출하는 함수
     void OnSceneLoaded(Scene scene, LoadSceneMode mode)
     {
-        // 로드된 씬이 "Core" 씬이라면 (즉, 우리가 부활해서 Core로 돌아왔다면)
-        if (scene.name == "Core")
-        {
-            Debug.LogWarning("GameManager가 Core 씬 로드를 감지했습니다. 게임을 다시 초기화합니다.");
-            // Start()에 있던 모든 초기화 로직을 다시 실행
-            InitializeGame();
-        }
+        // [수정] 'Core' 씬이고, 'Start' 함수가 *이미 한 번 실행된 후* (부활/이동 시)
+        if (scene.name == "Core" && isGameInitialized)
+        {
+            Debug.LogWarning("GameManager가 Core 씬 로드를 감지했습니다. (부활/이동)");
+            InitializeGame();
+        }
+        else if (scene.name == "Core" && !isGameInitialized)
+        {
+            Debug.Log("GameManager가 *최초* Core 씬 로드를 감지했습니다. (Start가 처리할 것임)");
+        }
     }
 
     // GameManager가 파괴될 때 호출됨 (메모리 누수 방지)
@@ -1061,27 +1101,30 @@ public class GameManager : MonoBehaviour
     // 플레이어를 물리적으로 얼리거나 해제함
     private void FreezePlayer(bool freeze)
     {
-        if (player == null || playerRigidbody == null)
+        // [수정] 플레이어가 null이거나 비활성화(숨김) 상태면 아무것도 안 함
+        if (player == null || !player.gameObject.activeInHierarchy)
         {
-            Debug.LogWarning("FreezePlayer: 플레이어 또는 Rigidbody 참조가 없습니다.");
+            // '얼음 해제' 시도인데 플레이어가 숨겨져 있다면, 
+            // 씬이 바뀌었으므로 로그를 남기지 않음 (정상 동작)
+            return;
+        }
+        
+        if (playerRigidbody == null)
+        {
+            Debug.LogWarning("FreezePlayer: Rigidbody 참조가 없습니다.");
             return;
         }
 
         if (freeze)
         {
-            // [얼리기]
-            // 물리 영향(중력 등)을 받지 않도록 Kinematic으로 설정
             playerRigidbody.isKinematic = true; 
-            playerRigidbody.velocity = Vector2.zero; // 현재 속도 제거
-            player.enabled = false; // 스크립트 비활성화
+            playerRigidbody.velocity = Vector2.zero;
+            player.enabled = false;
         }
         else
         {
-            // [해제]
-            player.enabled = true; // 스크립트 활성화
-            // 다시 물리 영향을 받도록 Dynamic으로 (Kinematic 해제)
+            player.enabled = true;
             playerRigidbody.isKinematic = false; 
-            // (PlayerReposition 후 Respawn이 호출되어야 함)
             player.Respawn(); 
         }
     }
