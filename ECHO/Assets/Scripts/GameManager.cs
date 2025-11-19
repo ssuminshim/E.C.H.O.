@@ -67,8 +67,10 @@ public class GameManager : MonoBehaviour
     private bool isDead = false;
 
     public GameObject inactivityPopup;  // 인스펙터에서 연결할 팝업 UI
+
+    public TMP_Text countdownText; // 팝업 내에서 시간을 표시할 Text 오브젝트
     public float inactivityLimit = 180f;    // 제한 시간 (초 단위)
-    public float popupDuration = 5f;    // 팝업이 뜬 후 대기할 시간 (초 단위)
+    public float popupDuration = 10f;    // 팝업이 뜬 후 대기할 시간 (초 단위)
     private float inactivityTimer = 0f; // 내부 타이머 변수
     private bool isInactive = false;    // 팝업이 떴는지 확인하는 변수
 
@@ -92,12 +94,19 @@ public class GameManager : MonoBehaviour
 
     // [미션 진행도 변수]
     [Header("Mission Settings")] // (인스펙터에서 보기 좋게 제목 추가)
+    [TextArea(2, 5)]
     public string stage4LockedMessage = "카드키가 더 필요한 것 같다.";
-    public string stage4MachineRequiredMessage = "먼저 기억보관장치를 가동시키자.";    private int cardKeysCollected = 0;
+    [TextArea(2, 5)]
+    public string stage4MachineRequiredMessage = "먼저 기억보관장치를 가동시키자.";
+    private int cardKeysCollected = 0;
     private int cardKeysNeeded = 3; // Stage 4에서 필요한 카드키 수
+    [TextArea(2, 5)]
     public string stage4Mission_InProgress = "카드키를 획득하여 기억보관장치를 가동시키자.";
+    [TextArea(2, 5)]
     public string stage4Mission_Complete = "카드키를 모두 얻었다. 이제 기억보관장치를 가동시켜보자.";
+    [TextArea(2, 5)]
     public string stage4Mission_Exit = "문 밖으로 나가보자."; // Memory 씬 이후 미션
+    [TextArea(2, 5)]
     public string stage5Mission = "앞으로 계속 가보자.";
 
     // 머신 상호작용 완료 시 활성화할 패널
@@ -749,13 +758,44 @@ public class GameManager : MonoBehaviour
         if (inactivityPopup != null)
             inactivityPopup.SetActive(true);
 
+        float remainingTime = popupDuration;
+
+        // **2. 팝업이 떠 있는 시간 동안 텍스트 업데이트**
+        while (remainingTime > 0)
+        {
+            if (countdownText != null)
+            {
+                // 원하는 형식으로 텍스트를 업데이트합니다.
+                countdownText.text = $"아무런 움직임이 없을 시\n{Mathf.CeilToInt(remainingTime)}초 뒤에\n메인메뉴로 이동합니다...";
+            }
+
+            // 1프레임 대기
+            yield return null; 
+
+            // 경과 시간만큼 남은 시간을 줄입니다. Time.deltaTime을 사용해 프레임 속도에 독립적으로 만듭니다.
+            remainingTime -= Time.deltaTime;
+        }
+
+        // while 루프가 끝나면 시간이 다 된 것입니다.
+        if (countdownText != null)
+        {
+            countdownText.text = "메인 메뉴로 이동 중...";
+        }
+
         // 2. 팝업이 떠 있는 시간(popupDuration)만큼 대기
-        yield return new WaitForSeconds(popupDuration);
+        //yield return new WaitForSeconds(popupDuration);
 
         Debug.Log("메인 메뉴로 돌아갑니다.");
 
         // 3. (필수) 시간 정지 상태일 수 있으니 1로 복구
         Time.timeScale = 1f;
+        
+        if (GameManager.Instance != null)
+        {
+            // DontDestroyOnLoad로 등록된 객체를 파괴합니다.
+            Destroy(GameManager.Instance.gameObject); 
+            GameManager.Instance = null; // 인스턴스 참조도 확실히 제거
+        }
 
         // 4. MainMenu 씬을 로드
         SceneManager.LoadScene("#00MainMenu");

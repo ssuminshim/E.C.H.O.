@@ -3401,7 +3401,8 @@ MonoBehaviour:
   fullHeartSprite: {fileID: -721943371, guid: a277e357acc5927419ecff556149dc51, type: 3}
   emptyHeartSprite: {fileID: -1337498574, guid: a277e357acc5927419ecff556149dc51, type: 3}
   inactivityPopup: {fileID: 659587427}
-  inactivityLimit: 180
+  countdownText: {fileID: 372217653}
+  inactivityLimit: 20
   popupDuration: 10
   itemPopupPanel: {fileID: 1296728046}
   itemPopupText: {fileID: 1063878444}
@@ -3417,8 +3418,8 @@ MonoBehaviour:
     \uAC00\uB3D9\uC2DC\uD0A4\uC790."
   stage4Mission_InProgress: "\uCE74\uB4DC\uD0A4\uB97C \uD68D\uB4DD\uD558\uC5EC \uAE30\uC5B5\uBCF4\uAD00\uC7A5\uCE58\uB97C
     \uAC00\uB3D9\uC2DC\uD0A4\uC790."
-  stage4Mission_Complete: "\uCE74\uB4DC\uD0A4\uB97C \uBAA8\uB450 \uC5BB\uC5C8\uB2E4.
-    \uC774\uC81C \uAE30\uC5B5\uBCF4\uAD00\uC7A5\uCE58\uB97C \uAC00\uB3D9\uC2DC\uCF1C\uBCF4\uC790."
+  stage4Mission_Complete: "\uCE74\uB4DC\uD0A4\uB97C \uBAA8\uB450 \uC5BB\uC5C8\uB2E4.\n\uC774\uC81C
+    \uAE30\uC5B5\uBCF4\uAD00\uC7A5\uCE58\uB97C \uAC00\uB3D9\uC2DC\uCF1C\uBCF4\uC790."
   stage4Mission_Exit: "\uBB38 \uBC16\uC73C\uB85C \uB098\uAC00\uBCF4\uC790."
   stage5Mission: "\uC55E\uC73C\uB85C \uACC4\uC18D \uAC00\uBCF4\uC790."
   machineCompletionPanel: {fileID: 466208108}
