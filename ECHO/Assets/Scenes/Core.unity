@@ -1555,7 +1555,7 @@ PrefabInstance:
     m_Modifications:
     - target: {fileID: 1042406944331579421, guid: 1add583261b2f474b8b3f224d8384e98, type: 3}
       propertyPath: m_text
-      value: "\uBE44\uBC00\uBC88\uD638\uB97C \uC801\uC5B4\uC8FC\uC138\uC694."
+      value: "\uBE44\uBC00\uBC88\uD638\uB97C \uC785\uB825\uD5E4 \uC8FC\uC138\uC694."
       objectReference: {fileID: 0}
     - target: {fileID: 1042406944331579421, guid: 1add583261b2f474b8b3f224d8384e98, type: 3}
       propertyPath: m_fontSize
@@ -1572,14 +1572,14 @@ PrefabInstance:
     - target: {fileID: 1042406944331579421, guid: 1add583261b2f474b8b3f224d8384e98, type: 3}
       propertyPath: m_sharedMaterial
       value: 
-      objectReference: {fileID: -6219571124789259739, guid: 24c37792c3e5344e39206fcc83216dc5, type: 2}
+      objectReference: {fileID: -8365308677185713331, guid: bf78ff92bebfe4735b346f9452c65cf2, type: 2}
     - target: {fileID: 1042406944331579421, guid: 1add583261b2f474b8b3f224d8384e98, type: 3}
       propertyPath: m_VerticalAlignment
       value: 512
       objectReference: {fileID: 0}
     - target: {fileID: 1042406944331579421, guid: 1add583261b2f474b8b3f224d8384e98, type: 3}
       propertyPath: m_hasFontAssetChanged
-      value: 1
+      value: 0
       objectReference: {fileID: 0}
     - target: {fileID: 2740834010219690811, guid: 1add583261b2f474b8b3f224d8384e98, type: 3}
       propertyPath: m_GlobalFontAsset
@@ -1772,6 +1772,7 @@ GameObject:
   - component: {fileID: 1156562502}
   - component: {fileID: 1156562504}
   - component: {fileID: 1156562503}
+  - component: {fileID: 1156562505}
   m_Layer: 5
   m_Name: MissionText
   m_TagString: Untagged
@@ -1795,8 +1796,8 @@ RectTransform:
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
   m_AnchorMin: {x: 1, y: 1}
   m_AnchorMax: {x: 1, y: 1}
-  m_AnchoredPosition: {x: -20, y: -100}
-  m_SizeDelta: {x: 700, y: 150}
+  m_AnchoredPosition: {x: -20, y: -115}
+  m_SizeDelta: {x: 700, y: 0}
   m_Pivot: {x: 1, y: 1}
 --- !u!114 &1156562503
 MonoBehaviour:
@@ -1895,6 +1896,20 @@ CanvasRenderer:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 1156562501}
   m_CullTransparentMesh: 1
+--- !u!114 &1156562505
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1156562501}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 3245ec927659c4140ac4f8d17403cc18, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  m_HorizontalFit: 0
+  m_VerticalFit: 2
 --- !u!1 &1209678998
 GameObject:
   m_ObjectHideFlags: 0
@@ -1955,7 +1970,7 @@ MonoBehaviour:
   m_text: 
   m_isRightToLeft: 0
   m_fontAsset: {fileID: 11400000, guid: bf78ff92bebfe4735b346f9452c65cf2, type: 2}
-  m_sharedMaterial: {fileID: -6219571124789259739, guid: 24c37792c3e5344e39206fcc83216dc5, type: 2}
+  m_sharedMaterial: {fileID: -8365308677185713331, guid: bf78ff92bebfe4735b346f9452c65cf2, type: 2}
   m_fontSharedMaterials: []
   m_fontMaterial: {fileID: 0}
   m_fontMaterials: []
@@ -2115,7 +2130,7 @@ PrefabInstance:
     m_Modifications:
     - target: {fileID: 1042406944331579421, guid: 1add583261b2f474b8b3f224d8384e98, type: 3}
       propertyPath: m_text
-      value: "\uC544\uC774\uB514\uB97C \uC801\uC5B4\uC8FC\uC138\uC694."
+      value: "\uB2C9\uB124\uC784\uC744 \uC785\uB825\uD574 \uC8FC\uC138\uC694."
       objectReference: {fileID: 0}
     - target: {fileID: 1042406944331579421, guid: 1add583261b2f474b8b3f224d8384e98, type: 3}
       propertyPath: m_fontSize
@@ -2132,14 +2147,14 @@ PrefabInstance:
     - target: {fileID: 1042406944331579421, guid: 1add583261b2f474b8b3f224d8384e98, type: 3}
       propertyPath: m_sharedMaterial
       value: 
-      objectReference: {fileID: -6219571124789259739, guid: 24c37792c3e5344e39206fcc83216dc5, type: 2}
+      objectReference: {fileID: -8365308677185713331, guid: bf78ff92bebfe4735b346f9452c65cf2, type: 2}
     - target: {fileID: 1042406944331579421, guid: 1add583261b2f474b8b3f224d8384e98, type: 3}
       propertyPath: m_VerticalAlignment
       value: 512
       objectReference: {fileID: 0}
     - target: {fileID: 1042406944331579421, guid: 1add583261b2f474b8b3f224d8384e98, type: 3}
       propertyPath: m_hasFontAssetChanged
-      value: 1
+      value: 0
       objectReference: {fileID: 0}
     - target: {fileID: 2740834010219690811, guid: 1add583261b2f474b8b3f224d8384e98, type: 3}
       propertyPath: m_GlobalFontAsset
@@ -3402,7 +3417,7 @@ MonoBehaviour:
   emptyHeartSprite: {fileID: -1337498574, guid: a277e357acc5927419ecff556149dc51, type: 3}
   inactivityPopup: {fileID: 659587427}
   countdownText: {fileID: 372217653}
-  inactivityLimit: 20
+  inactivityLimit: 180
   popupDuration: 10
   itemPopupPanel: {fileID: 1296728046}
   itemPopupText: {fileID: 1063878444}

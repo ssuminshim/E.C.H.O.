@@ -972,7 +972,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 26ce350acac9749a1924f063164aad48, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  typingSpeed: 0.1
+  typingSpeed: 0.08
 --- !u!114 &1322859039
 MonoBehaviour:
   m_ObjectHideFlags: 0

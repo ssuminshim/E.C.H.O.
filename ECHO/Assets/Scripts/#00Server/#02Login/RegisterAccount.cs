@@ -29,12 +29,12 @@ public class RegisterAccount : LoginBass
         ResetUI(imageID, imagePW);
 
         // 필드 값이 비어있는지 체크
-        if ( IsFieldDataEmpty(imageID, inputFieldID.text, "아이디")) return;
+        if ( IsFieldDataEmpty(imageID, inputFieldID.text, "닉네임")) return;
         if  (IsFieldDataEmpty(imagePW, inputFieldPW.text, "비밀번호")) return;
 
         // 계정 생성 버튼의 상호작용 비활성화
         btnRegisterAccount.interactable = false;
-        SetMessage("계정 생성중입니다..");
+        SetMessage("기억 복구 중입니다..");
 
         // 뒤끝 서버 계정 생성 시도
         CustomSignUP();
@@ -51,7 +51,7 @@ public class RegisterAccount : LoginBass
             // 계정 생성 성공
             if (callback.IsSuccess())
             {
-                SetMessage($"계정 생성 성공. {inputFieldID.text}님 환영합니다.");
+                SetMessage($"기억 복구 성공. {inputFieldID.text}님의 기억을 열람합니다.");
 
                 // 계정 생성에 성공했을 때 해당 계정의 게임 정보 생성
                 BackendGameData.Instance.GameDataInsert();
@@ -67,7 +67,7 @@ public class RegisterAccount : LoginBass
                 switch (int.Parse(callback.GetStatusCode()))
                 {
                     case 409: // 중복된 customID 존재
-                        message = "이미 존재하는 아이디입니다.";
+                        message = "이미 존재하는 닉네임입니다.";
                         break;
                     case 404: // 차단당한 디바이스
                     case 401: // 프로젝트 상태가 '점검'일 경우
@@ -77,7 +77,7 @@ public class RegisterAccount : LoginBass
                         break;
                 }
 
-                if (message.Contains("아이디"))
+                if (message.Contains("닉네임"))
                 {
                     GuideForIncorrectlyEnteredData(imageID, message);
                 }

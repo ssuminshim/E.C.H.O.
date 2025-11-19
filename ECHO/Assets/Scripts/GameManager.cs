@@ -806,6 +806,8 @@ public class GameManager : MonoBehaviour
     {
         AudioClip clipToPlay = null;
         bool showPlayerAndUI = true; // 기본값은 '보여줌'
+        // UIStage를 기본적으로 활성화 상태로 둠 (대부분의 스테이지)
+        bool showUIStage = true;
 
         // 8개 씬 리스트 순서에 맞춘 BGM 및 미션
         switch (index)
@@ -829,20 +831,24 @@ public class GameManager : MonoBehaviour
                 clipToPlay = null; // [수정] Memory 씬이 자체 BGM을 재생
                 UIMissionText.text = ""; 
                 showPlayerAndUI = false; // [수정] 플레이어와 UI 숨김
+                showUIStage = false; //
                 break;
             case 5: // Stage_5
                 clipToPlay = musicStage5;
                 UIMissionText.text = stage5Mission; 
+                showUIStage = false; //
                 break;
             case 6: // Ending
                 clipToPlay = null; // [수정] Ending 씬이 자체 BGM을 재생
                 UIMissionText.text = ""; 
                 showPlayerAndUI = false; // [수정] 플레이어와 UI 숨김
+                showUIStage = false; //
                 break;
             case 7: // Credit
                 clipToPlay = null; // [수정] Credit 씬이 자체 BGM을 재생
                 UIMissionText.text = "";
                 showPlayerAndUI = false; // [수정] 플레이어와 UI 숨김
+                showUIStage = false; //
                 break;
             default:
                 UIMissionText.text = "";
@@ -875,6 +881,18 @@ public class GameManager : MonoBehaviour
         {
             bgmPlayer.Stop(); // [수정] (2번 BGM 겹침 문제 해결)
         }
+
+        // Stage UI 활성화/비활성화 처리
+        if (UIStage != null && UIStage.gameObject != null)
+        {
+            // UIStage가 gameUIRoot의 자식인 경우가 많으므로, gameUIRoot가 활성화 상태일 때만 제어합니다.
+            // gameUIRoot가 비활성화되면 모든 자식도 비활성화됩니다.
+            if (gameUIRoot != null && gameUIRoot.activeInHierarchy)
+            {
+                UIStage.gameObject.SetActive(showUIStage);
+            }
+            // gameUIRoot 자체가 비활성화되는 씬(Memory, Ending 등)에서는 따로 건드리지 않습니다.
+        }
 
         // [ ★ 수정 ★ ] (3번 Core 씬 안 없어짐 문제 해결)
         // 플레이어와 UI를 켜거나 끔

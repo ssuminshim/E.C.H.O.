@@ -118,7 +118,7 @@ public class Memory : MonoBehaviour
                 string nextSentence = dialogue[sentenceIndex];
                 if (sentenceIndex == 14)
                 {
-                    nextSentence = $"그래서 난 \"{MessageFromPast}\"라고 남길거야.";
+                    nextSentence = $"그래서 난 \"{MessageFromPast}\"(이)라고 남길거야.";
                 }
 
                 // 특수 이름 변경 처리
@@ -145,25 +145,25 @@ public class Memory : MonoBehaviour
     /// </summary>
     private void UpdateNameText(int index)
     {
-        if (index == 18)
+        if (index == 0)
         {
+            // 0일 때: <앵커의 목소리>
+            ScriptText_name.text = "<앵커의 목소리>";
+        }
+        else if (index == 18)
+        {
+            // 18일 때: <나>
             ScriptText_name.text = "<나>";
         }
         else if (index == 19)
         {
+            // 19일 때: <기계>
             ScriptText_name.text = "<기계>";
         }
         else
         {
-            // 모든 다른 대화에서는 "???" 혹은 초기값 "<앵커의 목소리>"
-            if (index > 19) // 19 이후는 모두 "<???>"로 설정 (원래 로직을 따름)
-            {
-                 ScriptText_name.text = "<???>";
-            } 
-            else
-            {
-                ScriptText_name.text = "<앵커의 목소리>"; // 초기값 유지
-            }
+            // 0, 18, 19를 제외한 모든 인덱스: <???>
+            ScriptText_name.text = "<???>";
         }
     }
 
