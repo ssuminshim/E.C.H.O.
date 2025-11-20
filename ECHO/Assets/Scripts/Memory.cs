@@ -102,10 +102,16 @@ public class Memory : MonoBehaviour
 
     void HandleSpacebarPress()
     {
+        string currentSentence = dialogue[sentenceIndex];
+        if (sentenceIndex == 14 && sentenceIndex < dialogue.Length)
+        {
+             currentSentence = $"그래서 난 \"{MessageFromPast}\"(이)라고 남길거야.";
+        }
+        
         if (dialogueTypingEffect.IsTyping)
         {
-            // 타이핑 중이면 스킵
-            dialogueTypingEffect.SkipTyping(dialogue[sentenceIndex]);
+            // 타이핑 중이면 스킵: 특수 처리된 텍스트 (currentSentence)를 사용합니다.
+            dialogueTypingEffect.SkipTyping(currentSentence); // 👈 **수정된 부분**
         }
         else
         {
