@@ -820,7 +820,7 @@ public class GameManager : MonoBehaviour
 //           case 2: // Stage_3
 //                 clipToPlay = musicStage3;
 //                 UIMissionText.text = ""; 
-                break;
+//                break;
             case 2: // Stage_4
                 clipToPlay = musicStage4;
                 if (GameData.HasCompletedMemory) { UIMissionText.text = stage4Mission_Exit; }
