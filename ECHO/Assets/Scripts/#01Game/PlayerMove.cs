@@ -40,6 +40,7 @@ public class PlayerMove : MonoBehaviour
     {
         rigid = GetComponent<Rigidbody2D>();
         spriteRenderer = GetComponent<SpriteRenderer>();
+        spriteRenderer.flipX = true;
         anim = GetComponent<Animator>();
         capsulecollider = GetComponent<CapsuleCollider2D>();
         audioSource = GetComponent<AudioSource>();

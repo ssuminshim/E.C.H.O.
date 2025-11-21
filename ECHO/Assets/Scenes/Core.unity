@@ -2799,7 +2799,7 @@ CapsuleCollider2D:
   m_GameObject: {fileID: 2070665151859875769}
   m_Enabled: 1
   m_Density: 1
-  m_Material: {fileID: 0}
+  m_Material: {fileID: 6200000, guid: 3d51d042338b6134fb5b18f8075d8665, type: 2}
   m_IncludeLayers:
     serializedVersion: 2
     m_Bits: 0
@@ -3625,7 +3625,7 @@ SpriteRenderer:
   m_SortingOrder: 2
   m_Sprite: {fileID: -882396451, guid: a393adb549f4f43798ffa8b683359d39, type: 3}
   m_Color: {r: 1, g: 1, b: 1, a: 1}
-  m_FlipX: 0
+  m_FlipX: 1
   m_FlipY: 0
   m_DrawMode: 0
   m_Size: {x: 1.5, y: 1.5}

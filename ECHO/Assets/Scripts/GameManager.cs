@@ -147,6 +147,15 @@ public class GameManager : MonoBehaviour
         inactivityTimer = 0f;
         Time.timeScale = 1f; 
 
+        // 씬이 새로 시작될 때 카드키 개수를 0으로 초기화
+        cardKeysCollected = 0;
+
+        // (현재 스테이지 인덱스가 0 또는 1일 때 초기화)
+        if (stageIndex == 0)
+        {
+            GameData.HasCompletedMemory = false;
+        }
+
         // ... (4. 팝업 UI 끄기 - 생략) ...
         if (inactivityPopup != null) inactivityPopup.SetActive(false);
         if (itemPopupPanel != null) itemPopupPanel.SetActive(false); 
@@ -909,15 +918,18 @@ public class GameManager : MonoBehaviour
     // ItemManager.cs가 이 함수를 호출
     public void OnItemCollected(string itemName, string message)
     {
-        // 1. 팝업 코루틴 실행
-        StartCoroutine(ShowItemPopup(message));
-
-        // 2. 미션 진행도 업데이트
+        // 1. 카드키일 경우 개수 증가 및 미션 텍스트 갱신
         if (itemName == "CardKey")
         {
-            cardKeysCollected++;
-            CheckMissionProgress(); // 미션 상태 확인
+            cardKeysCollected++; 
+            
+            // 오른쪽 위(MissionText)는 여기서 갱신 (1/3, 2/3...)
+            CheckMissionProgress(); 
         }
+
+        // 2. 팝업은 아이템(Item.cs)에 적혀있는 message 그대로 출력
+        // (개수 카운트 정보는 미션창에만 뜨고, 팝업에는 안 뜸)
+        StartCoroutine(ShowItemPopup(message));
     }
 
     // 아이템 팝업을 2초간 띄웠다가 숨기는 코루틴
@@ -935,7 +947,7 @@ public class GameManager : MonoBehaviour
     void CheckMissionProgress()
     {
         // 현재 스테이지가 Stage 4 (인덱스 3)일 때만 확인
-        if (stageIndex == 3)
+        if (stageIndex == 2)
         {
             if (cardKeysCollected >= cardKeysNeeded)
             {
@@ -1146,23 +1158,41 @@ public class GameManager : MonoBehaviour
     // 씬이 로드되었을 때 SceneManager가 호출하는 함수
     void OnSceneLoaded(Scene scene, LoadSceneMode mode)
     {
-        // Core 씬일 때만 초기화를 진행
+        // 1. 'Core' 씬 (플레이어가 활약하는 곳)
         if (scene.name == "Core")
         {
             if (isGameInitialized)
             {
-                Debug.LogWarning("GameManager가 Core 씬 재로드를 감지했습니다. (부활/이동)");
+                // 부활하거나 스테이지 이동으로 다시 Core가 로드됨
                 InitializeGame();
             }
             else
             {
-                Debug.Log("GameManager가 최초 Core 씬 로드를 감지했습니다.");
+                // 게임 최초 실행 (Start 함수가 처리)
             }
         }
-        // [추가] 만약 Memory, Ending, Credit 씬이라면 음악을 확실하게 끔
-        else if (scene.name == "Memory" || scene.name == "Ending" || scene.name == "Credit")
+        // [수정] 2. 'Core'가 필요 없는 스토리/연출 씬들 (플레이어 숨겨야 함!)
+        // 여기에 "PreviousLife" (또는 사용하시는 실제 씬 이름)도 꼭 추가하세요.
+        else if (scene.name == "Memory" || scene.name == "Ending" || 
+                 scene.name == "Credit" || scene.name == "PreviousLife")
         {
+             Debug.Log(scene.name + " 씬 로드됨: 플레이어와 UI를 숨깁니다.");
+             
+             // 혹시 켜져 있을 BGM 끄기
              StopMusic();
+
+             // [핵심] 따라온 플레이어 강제로 끄기
+             if (player != null) 
+             {
+                 player.VelocityZero(); // 속도 0 (추락 방지)
+                 player.gameObject.SetActive(false); // 안 보이게 끄기
+             }
+
+             // UI도 가리기
+             if (gameUIRoot != null) 
+             {
+                 gameUIRoot.SetActive(false);
+             }
         }
     }
 
@@ -1221,6 +1251,22 @@ public class GameManager : MonoBehaviour
         {
             machineCompletionPanel.SetActive(true);
         }
+    }
+
+    public void FinishMemoryScene()
+    {
+        Debug.Log("Memory 씬 종료! 스테이지 4로 복귀합니다.");
+
+        // 1. [핵심] "기억을 봤음" 도장 꾹! (이거 없으면 무한 루프)
+        GameData.HasCompletedMemory = true;
+
+        // 2. 돌아갈 스테이지 설정 (Stage 4 = 인덱스 2)
+        // (스테이지 3을 지웠으므로 Stage 4는 인덱스 2입니다)
+        GameData.StageToReload = 2; 
+        stageIndex = 2;
+
+        // 3. Core 씬 로드 (Stage 4로 복귀)
+        SceneManager.LoadScene("Core");
     }
 
 }

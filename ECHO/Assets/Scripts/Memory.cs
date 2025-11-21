@@ -140,7 +140,7 @@ public class Memory : MonoBehaviour
             {
                 // 마지막 대화가 끝나면 씬 전환
                 GameData.HasCompletedMemory = true;
-                GameData.StageToReload = 3;
+                GameData.StageToReload = 2;
                 SceneManager.LoadScene("Core");
             }
         }
