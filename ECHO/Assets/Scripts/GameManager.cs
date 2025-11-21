@@ -406,7 +406,7 @@ public class GameManager : MonoBehaviour
         int nextStageIndex = stageIndex + 1; // 기본적으로 다음 스테이지
 
         // --- 1. Stage 4 (인덱스 3) 분기 처리 ---
-        if (stageIndex == 3)
+        if (stageIndex == 2)
         {
             if (GameData.HasCompletedMemory == false) // 첫 방문
             {
@@ -425,13 +425,13 @@ public class GameManager : MonoBehaviour
             else // Memory 완료 후
             {
                 // Stage 5 (index 5)로 점프
-                nextStageIndex = 5;
+                nextStageIndex = 4;
             }
         }
         // Stage 5 -> Ending (index 5 -> 6)
-        else if (stageIndex == 5)
+        else if (stageIndex == 4)
         {
-            nextStageIndex = 6;
+            nextStageIndex = 5;
         }
 
         // --- 2. 씬 리스트 범위 확인 ---
@@ -446,14 +446,14 @@ public class GameManager : MonoBehaviour
         string sceneToLoad = stageSceneNames[nextStageIndex];
 
         // 'Core' 씬이 필요 없는 씬 (Memory, Ending, Credit)
-        if (nextStageIndex == 4 || nextStageIndex == 6 || nextStageIndex == 7)
+        if (nextStageIndex == 3 || nextStageIndex == 5 || nextStageIndex == 6)
         {
             Debug.Log(sceneToLoad + " 씬을 'Single' 모드로 로드합니다.");
             StopMusic(); // Core 씬 BGM 중지 (2번 BGM 겹침 해결)
             
             // 돌아와야 할 곳을 저장 (Memory에서만)
-            if (nextStageIndex == 4) 
-                GameData.StageToReload = 3; // (Stage_4)
+            if (nextStageIndex == 3) 
+                GameData.StageToReload = 2; // (Stage_4)
             
             // 'Single' 모드로 로드하기 *전에* stageIndex를 업데이트합니다.
             // 이렇게 해야 'Ending' 씬(index 6)에서 'NextStage()'를 호출할 때
@@ -510,8 +510,8 @@ public class GameManager : MonoBehaviour
         Debug.Log("로그인 성공! Memory 씬으로 이동합니다.");
 
         StopMusic(); 
-        GameData.StageToReload = 3; 
-        SceneManager.LoadScene(stageSceneNames[4]); 
+        GameData.StageToReload = 2; 
+        SceneManager.LoadScene(stageSceneNames[3]); 
     }
 
     // 기계 상호작용 실패(카드키 부족) 시 호출할 함수
@@ -817,34 +817,34 @@ public class GameManager : MonoBehaviour
                 clipToPlay = musicStage1_2;
                 UIMissionText.text = ""; 
                 break;
-            case 2: // Stage_3
-                clipToPlay = musicStage3;
-                UIMissionText.text = ""; 
+//           case 2: // Stage_3
+//                 clipToPlay = musicStage3;
+//                 UIMissionText.text = ""; 
                 break;
-            case 3: // Stage_4
+            case 2: // Stage_4
                 clipToPlay = musicStage4;
                 if (GameData.HasCompletedMemory) { UIMissionText.text = stage4Mission_Exit; }
                 else if (cardKeysCollected >= cardKeysNeeded) { UIMissionText.text = stage4Mission_Complete; }
                 else { UIMissionText.text = stage4Mission_InProgress; }
                 break;
-            case 4: // Memory
+            case 3: // Memory
                 clipToPlay = null; // [수정] Memory 씬이 자체 BGM을 재생
                 UIMissionText.text = ""; 
                 showPlayerAndUI = false; // [수정] 플레이어와 UI 숨김
                 showUIStage = false; //
                 break;
-            case 5: // Stage_5
+            case 4: // Stage_5
                 clipToPlay = musicStage5;
                 UIMissionText.text = stage5Mission; 
                 showUIStage = false; //
                 break;
-            case 6: // Ending
+            case 5: // Ending
                 clipToPlay = null; // [수정] Ending 씬이 자체 BGM을 재생
                 UIMissionText.text = ""; 
                 showPlayerAndUI = false; // [수정] 플레이어와 UI 숨김
                 showUIStage = false; //
                 break;
-            case 7: // Credit
+            case 6: // Credit
                 clipToPlay = null; // [수정] Credit 씬이 자체 BGM을 재생
                 UIMissionText.text = "";
                 showPlayerAndUI = false; // [수정] 플레이어와 UI 숨김
@@ -858,7 +858,7 @@ public class GameManager : MonoBehaviour
         // 걷는 소리 설정
         if (player != null)
         {
-            if (index == 3) // Stage 4
+            if (index == 2) // Stage 4
             {
                 if (stage4WalkSound != null) player.audioWalk = stage4WalkSound;
             }
